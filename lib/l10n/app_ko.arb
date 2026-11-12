@@ -1,0 +1,20 @@
+{
+  "@@locale": "ko",
+  "appTitle": "건강 모니터링",
+  "login": "로그인",
+  "id":"아이디",
+  "user_number":"근로자번호",
+  "password":"비밀번호",
+  "sir":"님",
+  "work_start":"업무 시작하기",
+  "emergency":"긴급 SOS",
+  "color_blue":"#2760F4",
+  "color_appbar":"#1E2A38",
+  "color_orange":"#D87706",
+  "color_yellow_light":"#F9FDE6",
+  "color_green":"#14A44F",
+  "color_red":"#DD2527",
+  "font_size":"20.0",
+  "font_size_sub":"15.0",
+  "font_size_big":"30.0"
+}
