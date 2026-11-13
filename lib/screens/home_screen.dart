@@ -1,13 +1,9 @@
 
-import 'package:aws402_flutter/router/app_routes.dart';
 import 'package:aws402_flutter/screens/alert_screen.dart';
-import 'package:aws402_flutter/utils/color_extension.dart';
-import 'package:aws402_flutter/utils/toast.dart';
 import 'package:aws402_flutter/widgets/main_widget.dart';
 import 'package:aws402_flutter/widgets/topbar_widget.dart';
 import 'package:aws402_flutter/widgets/work_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:toastification/toastification.dart';
 
 import '../l10n/app_localizations.dart';
 

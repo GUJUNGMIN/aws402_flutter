@@ -1,4 +1,3 @@
-import 'package:aws402_flutter/screens/alert_screen.dart';
 import 'package:aws402_flutter/screens/signin_screen.dart';
 import 'package:flutter/material.dart';
 
