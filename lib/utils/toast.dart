@@ -8,8 +8,8 @@ class Toast {
     toastification.show(
       style: ToastificationStyle.simple,
       context: context,
-      title: Text('내 정보 화면'),
-      autoCloseDuration: Duration(seconds: 2),
+      title: Text(title),
+      autoCloseDuration: Duration(seconds: 1),
       alignment: Alignment.bottomCenter,
       closeOnClick: false,
       dragToClose: false,

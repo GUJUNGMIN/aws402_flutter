@@ -7,8 +7,7 @@ import '../utils/color_extension.dart';
 import '../utils/loading_dialog.dart';
 
 class SigninScreen extends StatefulWidget{
-  final String title;
-  const SigninScreen({super.key, required this.title});
+  const SigninScreen({super.key});
 
   @override
   State<StatefulWidget> createState() => _SigninScreenState();

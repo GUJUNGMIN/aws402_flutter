@@ -97,7 +97,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In ko, this message translates to:
-  /// **'건강 모니터링'**
+  /// **'헬스가드'**
   String get appTitle;
 
   /// No description provided for @login.
@@ -136,11 +136,101 @@ abstract class AppLocalizations {
   /// **'업무 시작하기'**
   String get work_start;
 
+  /// No description provided for @work_rest.
+  ///
+  /// In ko, this message translates to:
+  /// **'휴식하기'**
+  String get work_rest;
+
+  /// No description provided for @rest_start.
+  ///
+  /// In ko, this message translates to:
+  /// **'휴식 시작'**
+  String get rest_start;
+
+  /// No description provided for @pause.
+  ///
+  /// In ko, this message translates to:
+  /// **'일시정지'**
+  String get pause;
+
+  /// No description provided for @work_end.
+  ///
+  /// In ko, this message translates to:
+  /// **'근무종료'**
+  String get work_end;
+
+  /// No description provided for @work_history.
+  ///
+  /// In ko, this message translates to:
+  /// **'근무기록'**
+  String get work_history;
+
   /// No description provided for @emergency.
   ///
   /// In ko, this message translates to:
   /// **'긴급 SOS'**
   String get emergency;
+
+  /// No description provided for @connect_pic.
+  ///
+  /// In ko, this message translates to:
+  /// **'담당자 연결'**
+  String get connect_pic;
+
+  /// No description provided for @bpm.
+  ///
+  /// In ko, this message translates to:
+  /// **'심박수'**
+  String get bpm;
+
+  /// No description provided for @temperature.
+  ///
+  /// In ko, this message translates to:
+  /// **'체온'**
+  String get temperature;
+
+  /// No description provided for @spo2.
+  ///
+  /// In ko, this message translates to:
+  /// **'산소포화도'**
+  String get spo2;
+
+  /// No description provided for @is_fall.
+  ///
+  /// In ko, this message translates to:
+  /// **'낙상여부'**
+  String get is_fall;
+
+  /// No description provided for @close.
+  ///
+  /// In ko, this message translates to:
+  /// **'닫기'**
+  String get close;
+
+  /// No description provided for @notice.
+  ///
+  /// In ko, this message translates to:
+  /// **'주의'**
+  String get notice;
+
+  /// No description provided for @warning.
+  ///
+  /// In ko, this message translates to:
+  /// **'경고'**
+  String get warning;
+
+  /// No description provided for @danger.
+  ///
+  /// In ko, this message translates to:
+  /// **'위험'**
+  String get danger;
+
+  /// No description provided for @alarm.
+  ///
+  /// In ko, this message translates to:
+  /// **'알람'**
+  String get alarm;
 
   /// No description provided for @color_blue.
   ///
@@ -178,6 +268,30 @@ abstract class AppLocalizations {
   /// **'#DD2527'**
   String get color_red;
 
+  /// No description provided for @color_notice_bg.
+  ///
+  /// In ko, this message translates to:
+  /// **'#FFC83D'**
+  String get color_notice_bg;
+
+  /// No description provided for @color_warning_bg.
+  ///
+  /// In ko, this message translates to:
+  /// **'#FF8A1F'**
+  String get color_warning_bg;
+
+  /// No description provided for @color_danger_bg.
+  ///
+  /// In ko, this message translates to:
+  /// **'#C8102E'**
+  String get color_danger_bg;
+
+  /// No description provided for @color_alert_text.
+  ///
+  /// In ko, this message translates to:
+  /// **'#2B2100'**
+  String get color_alert_text;
+
   /// No description provided for @font_size.
   ///
   /// In ko, this message translates to:
@@ -195,6 +309,12 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'30.0'**
   String get font_size_big;
+
+  /// No description provided for @font_size_mega.
+  ///
+  /// In ko, this message translates to:
+  /// **'40.0'**
+  String get font_size_mega;
 }
 
 class _AppLocalizationsDelegate

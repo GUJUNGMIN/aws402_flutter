@@ -17,12 +17,12 @@ dependencies:
   dio: ^5.11.1  #비동기 통신
   toastification: ^3.2.2  #toast 메세지
 
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
   flutter_native_splash: ^2.4.8 #스플래시 스크린 생성
-
 
 flutter:
   uses-material-design: true

@@ -1,3 +1,4 @@
+import 'package:aws402_flutter/screens/alert_screen.dart';
 import 'package:aws402_flutter/screens/signin_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -12,8 +13,8 @@ class AppRoutes {
 
   //  main.dart 파일에서 참조하는 라우팅 정보
   static final Map<String, WidgetBuilder> routes = {
-    home: (context) => const HomeScreen(title: '노인 일자리'),
-    signin: (context) => const SigninScreen(title: '로그인'),
+    home: (context) => const HomeScreen(),
+    signin: (context) => const SigninScreen(),
   };
 }
 
