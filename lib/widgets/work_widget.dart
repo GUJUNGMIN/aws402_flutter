@@ -22,7 +22,7 @@ class WorkWidget extends StatelessWidget{
             borderRadius: BorderRadius.circular(10.0),
             border: Border.all(
               color: l10n.color_orange.toColor(),
-              width: 3.0,
+              width: 2.0,
             ),
             color: l10n.color_yellow_light.toColor(),
           ),
@@ -95,13 +95,17 @@ class WorkWidget extends StatelessWidget{
                             borderRadius: BorderRadius.circular(10.0),
                             border: Border.all(
                               color: Colors.grey,
-                              width: 3.0,
+                              width: 2.0,
                             ),
                             color: Colors.black12
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            Image(
+                              image: AssetImage('assets/images/icon_health_bpm.png'),
+                              width: 50.0,
+                            ),
                             Text(
                               l10n.bpm,
                               style: TextStyle(
@@ -133,13 +137,17 @@ class WorkWidget extends StatelessWidget{
                             borderRadius: BorderRadius.circular(10.0),
                             border: Border.all(
                               color: Colors.grey,
-                              width: 3.0,
+                              width: 2.0,
                             ),
                             color: Colors.black12
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            Image(
+                              image: AssetImage('assets/images/icon_health_temperature.png'),
+                              width: 50.0,
+                            ),
                             Text(
                               l10n.temperature,
                               style: TextStyle(
@@ -179,13 +187,17 @@ class WorkWidget extends StatelessWidget{
                             borderRadius: BorderRadius.circular(10.0),
                             border: Border.all(
                               color: Colors.grey,
-                              width: 3.0,
+                              width: 2.0,
                             ),
                             color: Colors.black12
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            Image(
+                              image: AssetImage('assets/images/icon_health_spo2.png'),
+                              width: 50.0,
+                            ),
                             Text(
                               l10n.spo2,
                               style: TextStyle(
@@ -217,13 +229,17 @@ class WorkWidget extends StatelessWidget{
                             borderRadius: BorderRadius.circular(10.0),
                             border: Border.all(
                               color: Colors.grey,
-                              width: 3.0,
+                              width: 2.0,
                             ),
                             color: Colors.black12
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            Image(
+                              image: AssetImage('assets/images/icon_health_fall.png'),
+                              width: 50.0,
+                            ),
                             Text(
                               l10n.is_fall,
                               style: TextStyle(
@@ -276,6 +292,12 @@ class WorkWidget extends StatelessWidget{
                 showAlert('danger');
               },
               child: Text('위험'),
+            ),
+            ElevatedButton(
+              onPressed: (){
+                showAlert('emergency');
+              },
+              child: Text('응급'),
             )
           ],
         ),

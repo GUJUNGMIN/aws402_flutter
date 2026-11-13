@@ -25,6 +25,7 @@ class _AlertScreenState extends State<AlertScreen>{
     Color mainColor;
     String alertText;
     IconData icon;
+
     switch(widget.type.toLowerCase()){
       case 'notice' :
         bgColor = l10n.color_notice_bg.toColor();
@@ -44,6 +45,12 @@ class _AlertScreenState extends State<AlertScreen>{
         alertText = l10n.danger;
         icon = Icons.dangerous_rounded;
         break;
+      case 'emergency' :
+        bgColor = l10n.color_emergency_bg.toColor();
+        mainColor = Colors.white;
+        alertText = l10n.emergency;
+        icon = Icons.sos_rounded;
+        break;
       default :
         bgColor = Colors.white;
         mainColor = l10n.color_alert_text.toColor();
@@ -51,6 +58,257 @@ class _AlertScreenState extends State<AlertScreen>{
         icon = Icons.alarm;
         break;
     }
+
+    Widget noticeWidget (){
+      return Column(
+        children: [
+          FilledButton(
+              style: FilledButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5.0),
+                ),
+                backgroundColor: mainColor,
+                padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
+              ),
+              onPressed: (){
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '${l10n.rest_start} (${l10n.pause})',
+                    style: TextStyle(
+                        fontSize: fontSize,
+                        fontWeight: FontWeight.bold,
+                        color: bgColor
+                    ),
+                  )
+                ],
+              )
+
+          ),
+          SizedBox(height: 10.0,),
+          OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5.0),
+                  ),
+                  padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
+                  side: BorderSide(
+                      color: mainColor
+                  )
+              ),
+              onPressed: (){
+                Navigator.pop(context);
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    l10n.close,
+                    style: TextStyle(
+                        fontSize: fontSize,
+                        fontWeight: FontWeight.bold,
+                        color: mainColor
+                    ),
+                  )
+                ],
+              )
+
+          ),
+        ],
+      );
+    }
+
+    Widget warningWidget (){
+      return Column(
+        children: [
+          FilledButton(
+              style: FilledButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5.0),
+                ),
+                backgroundColor: mainColor,
+                padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
+              ),
+              onPressed: (){
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    l10n.direct_pic,
+                    style: TextStyle(
+                        fontSize: fontSize,
+                        fontWeight: FontWeight.bold,
+                        color: bgColor
+                    ),
+                  )
+                ],
+              )
+
+          ),
+          SizedBox(height: 10.0,),
+          OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5.0),
+                  ),
+                  padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
+                  side: BorderSide(
+                      color: mainColor
+                  )
+              ),
+              onPressed: (){
+                Navigator.pop(context);
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    l10n.close,
+                    style: TextStyle(
+                        fontSize: fontSize,
+                        fontWeight: FontWeight.bold,
+                        color: mainColor
+                    ),
+                  )
+                ],
+              )
+
+          ),
+        ],
+      );
+    }
+
+    Widget dangerWidget (){
+      return Column(
+        children: [
+          FilledButton(
+              style: FilledButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5.0),
+                ),
+                backgroundColor: mainColor,
+                padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
+              ),
+              onPressed: (){
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    l10n.direct_pic,
+                    style: TextStyle(
+                        fontSize: fontSize,
+                        fontWeight: FontWeight.bold,
+                        color: bgColor
+                    ),
+                  )
+                ],
+              )
+
+          ),
+          SizedBox(height: 10.0,),
+          OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5.0),
+                  ),
+                  padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
+                  side: BorderSide(
+                      color: mainColor
+                  )
+              ),
+              onPressed: (){
+                Navigator.pop(context);
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '${l10n.request_cancel} (${l10n.thats_ok})',
+                    style: TextStyle(
+                        fontSize: fontSize,
+                        fontWeight: FontWeight.bold,
+                        color: mainColor
+                    ),
+                  )
+                ],
+              )
+
+          ),
+        ],
+      );
+    }
+
+    Widget emergencyWidget (){
+      return Column(
+        children: [
+          FilledButton(
+              style: FilledButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5.0),
+                ),
+                backgroundColor: mainColor,
+                padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
+              ),
+              onPressed: (){
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.emergency,
+                    color: bgColor,
+                  ),
+                  SizedBox(width: 5.0,),
+                  Text(
+                    '${l10n.urgency} SOS',
+                    style: TextStyle(
+                        fontSize: fontSize,
+                        fontWeight: FontWeight.bold,
+                        color: bgColor
+                    ),
+                  )
+                ],
+              )
+
+          ),
+          SizedBox(height: 10.0,),
+          OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5.0),
+                  ),
+                  padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
+                  side: BorderSide(
+                      color: mainColor
+                  )
+              ),
+              onPressed: (){
+                Navigator.pop(context);
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(width: 5.0,),
+                  Text(
+                    '119 ${l10n.urgency} ${l10n.declaration}',
+                    style: TextStyle(
+                        fontSize: fontSize,
+                        fontWeight: FontWeight.bold,
+                        color: mainColor
+                    ),
+                  )
+                ],
+              )
+
+          ),
+        ],
+      );
+    }
+
     return Scaffold(
       body: Container(
         padding: EdgeInsets.all(10.0),
@@ -117,6 +375,7 @@ class _AlertScreenState extends State<AlertScreen>{
                           ),
                         ),
                       ),
+                      SizedBox(height: 10.0,),
                       Text(
                         '[발생 원인]',
                         style: TextStyle(
@@ -160,62 +419,13 @@ class _AlertScreenState extends State<AlertScreen>{
                     ],
                   )
               ),
-              FilledButton(
-                  style: FilledButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5.0),
-                    ),
-                    backgroundColor: mainColor,
-                    padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
-                  ),
-                  onPressed: (){
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(width: 5.0,),
-                      Text(
-                        '${l10n.rest_start} (${l10n.pause})',
-                        style: TextStyle(
-                          fontSize: fontSize,
-                          fontWeight: FontWeight.bold,
-                          color: bgColor
-                        ),
-                      )
-                    ],
-                  )
-
-              ),
-              SizedBox(height: 10.0,),
-              OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5.0),
-                    ),
-                    padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
-                    side: BorderSide(
-                      color: mainColor
-                    )
-                  ),
-                  onPressed: (){
-                    Navigator.pop(context);
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(width: 5.0,),
-                      Text(
-                        l10n.close,
-                        style: TextStyle(
-                          fontSize: fontSize,
-                          fontWeight: FontWeight.bold,
-                          color: mainColor
-                        ),
-                      )
-                    ],
-                  )
-
-              ),
+              switch(widget.type.toLowerCase()){
+                'notice' => noticeWidget(),
+                'warning' => warningWidget(),
+                'danger' => dangerWidget(),
+                'emergency' => emergencyWidget(),
+                _ => Column()
+              }
             ],
           )
         )

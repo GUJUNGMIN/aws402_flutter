@@ -36,7 +36,7 @@ class TopbarWidget extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '빌헬름 ${l10n.sir}',
+                          '이원재 ${l10n.sir}',
                           style: TextStyle(
                             fontSize: fontSize,
                             fontWeight: FontWeight.bold,
@@ -67,7 +67,7 @@ class TopbarWidget extends StatelessWidget {
                 child: Row(
                   children: [
                     Image(
-                        image: AssetImage('assets/images/icon-sun.png'),
+                      image: AssetImage('assets/images/icon-sun.png'),
                       width: 30,
                     ),
                     Text(

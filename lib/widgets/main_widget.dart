@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
-import '../router/app_routes.dart';
 import '../utils/color_extension.dart';
 import '../utils/toast.dart';
 
@@ -23,7 +22,7 @@ class MainWidget extends StatelessWidget{
               borderRadius: BorderRadius.circular(10.0),
               border: Border.all(
                   color: l10n.color_orange.toColor(),
-                  width: 3.0
+                  width: 2.0
               ),
               color: l10n.color_yellow_light.toColor()
           ),

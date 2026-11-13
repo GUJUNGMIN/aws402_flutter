@@ -169,7 +169,7 @@ abstract class AppLocalizations {
   /// No description provided for @emergency.
   ///
   /// In ko, this message translates to:
-  /// **'긴급 SOS'**
+  /// **'응급'**
   String get emergency;
 
   /// No description provided for @connect_pic.
@@ -226,11 +226,41 @@ abstract class AppLocalizations {
   /// **'위험'**
   String get danger;
 
+  /// No description provided for @urgency.
+  ///
+  /// In ko, this message translates to:
+  /// **'긴급'**
+  String get urgency;
+
   /// No description provided for @alarm.
   ///
   /// In ko, this message translates to:
   /// **'알람'**
   String get alarm;
+
+  /// No description provided for @declaration.
+  ///
+  /// In ko, this message translates to:
+  /// **'신고'**
+  String get declaration;
+
+  /// No description provided for @request_cancel.
+  ///
+  /// In ko, this message translates to:
+  /// **'요청 취소'**
+  String get request_cancel;
+
+  /// No description provided for @thats_ok.
+  ///
+  /// In ko, this message translates to:
+  /// **'괜찮아요'**
+  String get thats_ok;
+
+  /// No description provided for @direct_pic.
+  ///
+  /// In ko, this message translates to:
+  /// **'담당자에게 즉시 알림'**
+  String get direct_pic;
 
   /// No description provided for @color_blue.
   ///
@@ -285,6 +315,12 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'#C8102E'**
   String get color_danger_bg;
+
+  /// No description provided for @color_emergency_bg.
+  ///
+  /// In ko, this message translates to:
+  /// **'#991B1C'**
+  String get color_emergency_bg;
 
   /// No description provided for @color_alert_text.
   ///

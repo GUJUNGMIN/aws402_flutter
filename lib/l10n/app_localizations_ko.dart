@@ -46,7 +46,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get work_history => '근무기록';
 
   @override
-  String get emergency => '긴급 SOS';
+  String get emergency => '응급';
 
   @override
   String get connect_pic => '담당자 연결';
@@ -76,7 +76,22 @@ class AppLocalizationsKo extends AppLocalizations {
   String get danger => '위험';
 
   @override
+  String get urgency => '긴급';
+
+  @override
   String get alarm => '알람';
+
+  @override
+  String get declaration => '신고';
+
+  @override
+  String get request_cancel => '요청 취소';
+
+  @override
+  String get thats_ok => '괜찮아요';
+
+  @override
+  String get direct_pic => '담당자에게 즉시 알림';
 
   @override
   String get color_blue => '#2760F4';
@@ -104,6 +119,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get color_danger_bg => '#C8102E';
+
+  @override
+  String get color_emergency_bg => '#991B1C';
 
   @override
   String get color_alert_text => '#2B2100';

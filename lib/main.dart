@@ -8,11 +8,11 @@ import 'l10n/app_localizations.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   // 앱 로딩중에 불러올 작업 작성
   String startRoute = await authenticationUser();
-  await Future.delayed(const Duration(seconds: 3)); //임의로 3초 딜레이, 실 사용시에는 삭제
-  FlutterNativeSplash.remove();
+  // await Future.delayed(const Duration(seconds: 3)); //임의로 3초 딜레이, 실 사용시에는 삭제
+  // FlutterNativeSplash.remove();
   runApp(MyApp(initialRoute: startRoute));
 }
 
