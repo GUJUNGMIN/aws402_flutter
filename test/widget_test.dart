@@ -1,30 +1,15 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:aws402_flutter/main.dart';
+import 'package:aws402_flutter/router/app_routes.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp(initialRoute: '',));
-
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  // 구정민 : 수정 - 기본 카운터 테스트를 현재 로그인 UI 입력 검증 테스트로 교체했다.
+  testWidgets('로그인 화면에서 빈 계정은 홈으로 이동하지 않는다', (tester) async {
+    await tester.pumpWidget(const MyApp(initialRoute: AppRoutes.signin));
+    expect(find.byType(TextField), findsNWidgets(2));
+    await tester.tap(find.byType(FilledButton));
+    await tester.pumpAndSettle();
+    expect(find.text('아이디와 비밀번호를 입력해 주세요.'), findsOneWidget);
   });
 }

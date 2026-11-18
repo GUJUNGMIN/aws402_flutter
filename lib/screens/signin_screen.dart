@@ -1,10 +1,7 @@
-import 'dart:math';
-
 import 'package:aws402_flutter/router/app_routes.dart';
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/color_extension.dart';
-import '../utils/loading_dialog.dart';
 
 class SigninScreen extends StatefulWidget{
   const SigninScreen({super.key});
@@ -20,24 +17,24 @@ class _SigninScreenState extends State<SigninScreen>{
   TextEditingController control_id = TextEditingController();
   TextEditingController control_pwd = TextEditingController();
 
-  void getLogin() async {
-    setState(() {
-      _isEnable = false;
-    });
-
-    LoadingDialog.show(context, message: '로그인 중...');
-    try{
-      await Future.delayed(Duration(seconds: 1));
-
-    }catch(e, s){
-      print('에러 발생 $s : $e');
-    }finally{
-      setState(() {
-        LoadingDialog.hide(context);
-        _isEnable = true;
-        Navigator.popAndPushNamed(context, AppRoutes.home);
-      });
+  // 구정민 : 수정 - 기존 가짜 로그인 완료 처리를 입력 검증 후 홈 이동으로 변경했다.
+  // 로그인 버튼에서 호출하며, 현재는 서버 인증을 수행하지 않는다.
+  void getLogin() {
+    if (control_id.text.trim().isEmpty || control_pwd.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('아이디와 비밀번호를 입력해 주세요.')),
+      );
+      return;
     }
+    Navigator.pushReplacementNamed(context, AppRoutes.home);
+  }
+
+  // 구정민 : 수정 - 로그인 화면이 닫힐 때 입력 컨트롤러를 해제한다.
+  @override
+  void dispose() {
+    control_id.dispose();
+    control_pwd.dispose();
+    super.dispose();
   }
 
   @override

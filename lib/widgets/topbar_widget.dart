@@ -24,11 +24,21 @@ class TopbarWidget extends StatelessWidget {
                 },
                 child: Row(
                   children: [
-                    CircleAvatar(
-                      backgroundImage: NetworkImage(
+                    // 구정민 : 수정 - 외부 프로필 이미지를 유지하고 403 등 로딩 실패 시에만 기본 아이콘을 표시한다.
+                    ClipOval(
+                      child: Image.network(
                         'https://i.namu.wiki/i/rcKQd_FcumdnxIyIPYkZo1B2IA2MZmfnc_HlpQUGksSQFjXiF-mAFjjxEcNk3AGKRwkz3Fho8TgEM-doCb8vMtZmM2neQAb6kRAc127qSGPU4EMaAEN7wlxm3sJZFoMN1hdeUozx8nugzdOA2xt-QQ.webp',
+                        width: 60.0,
+                        height: 60.0,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          width: 60.0,
+                          height: 60.0,
+                          color: Colors.white24,
+                          alignment: Alignment.center,
+                          child: const Icon(Icons.person, color: Colors.white, size: 34.0),
+                        ),
                       ),
-                      radius: 30.0,
                     ),
                     SizedBox(width: 10.0),
                     Column(

@@ -45,6 +45,8 @@ class MyApp extends StatelessWidget {
       //  AppRoutes 클래스를 가져와서 라우팅 정보 설정
       initialRoute: initialRoute,
       routes: AppRoutes.routes,
+      // 구정민 : 수정 - 휴식·위험 등 인수가 필요한 화면은 AppRoutes에서 직접 생성한다.
+      onGenerateRoute: AppRoutes.onGenerateRoute,
     );
   }
 }
