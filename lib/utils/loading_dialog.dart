@@ -1,7 +1,6 @@
 // [인수인계] 처리 중 표시와 닫기 동작을 공통화한다.
 // 기능 연결 위치: 프로젝트의 HANDOFF_LOGIC.html / SOURCE_INDEX.txt
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class LoadingDialog {

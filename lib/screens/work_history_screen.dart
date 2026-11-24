@@ -72,10 +72,11 @@ class _WorkHistoryScreenState extends State<WorkHistoryScreen> {
         });
       }
     } finally {
-      if (mounted && request == _requestId)
+      if (mounted && request == _requestId) {
         setState(() {
           _loading = false;
         });
+      }
     }
   }
 

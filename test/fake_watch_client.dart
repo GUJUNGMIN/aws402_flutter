@@ -50,4 +50,8 @@ class FakeWatchClient extends WatchClient {
   );
   void emit(HealthMeasurement value) => _samples.add(value);
   Future<void> close() => _samples.close();
+
+  @override
+  void reportConnection(WatchConnection value) {
+  }
 }

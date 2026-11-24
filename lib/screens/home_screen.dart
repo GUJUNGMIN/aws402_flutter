@@ -5,6 +5,7 @@ import 'dart:async';
 
 import 'package:aws402_flutter/router/app_routes.dart';
 import 'package:aws402_flutter/screens/alert_screen.dart';
+import 'package:aws402_flutter/service/notification_service.dart';
 import 'package:aws402_flutter/widgets/main_widget.dart';
 import 'package:aws402_flutter/widgets/topbar_widget.dart';
 import 'package:aws402_flutter/widgets/work_widget.dart';
@@ -57,6 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _health.addListener(_healthChanged);
     _restoreWorkStatus();
     _loadHomeDashboard();
+    _initFcm();
   }
 
   @override
@@ -65,6 +67,10 @@ class _HomeScreenState extends State<HomeScreen> {
     _health.removeListener(_healthChanged);
     _health.dispose();
     super.dispose();
+  }
+
+  Future<void> _initFcm () async {
+    await NotificationService.initialize();
   }
 
   // 구정민 : 앱 재실행 시 기존 서버의 근무/휴식 여부를 조회한다. 워치 연결 여부는 새로 확인한다.

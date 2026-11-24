@@ -25,6 +25,8 @@ abstract class WatchClient extends ChangeNotifier {
 
   /// [인수인계] 새 측정 요청 계약이다. 미설정 구현은 오류를 알리고 가상값을 반환하지 않는다.
   Future<void> requestMeasurement();
+
+  void reportConnection(WatchConnection value);
 }
 
 // 구정민 : 수정 - 어댑터 미설정 시 가상 연결이나 가상 측정값을 만들지 않는다.
@@ -45,4 +47,7 @@ class UnavailableWatchClient extends WatchClient {
   /// [인수인계] 새 측정 요청 계약이다. 미설정 구현은 오류를 알리고 가상값을 반환하지 않는다.
   Future<void> requestMeasurement() async =>
       throw StateError('워치를 먼저 연결해 주세요.');
+
+  @override
+  void reportConnection(WatchConnection value) {}
 }

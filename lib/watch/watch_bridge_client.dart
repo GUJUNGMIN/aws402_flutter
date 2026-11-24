@@ -32,6 +32,7 @@ class WatchBridgeClient extends WatchClient {
 
   // 구정민 : 수정 - 명령 완료만으로 연결을 확정하지 않고 실제 장치 이벤트로 갱신한다.
   /// [인수인계] SDK가 실제 연결 상태를 보고한 경우에만 연결 상태를 갱신하고 리스너에 알린다.
+  @override
   void reportConnection(WatchConnection value) {
     if (_disposed || _connection == value) return;
     _connection = value;

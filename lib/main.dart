@@ -2,23 +2,58 @@
 // 기능 연결 위치: 프로젝트의 HANDOFF_LOGIC.html / SOURCE_INDEX.txt
 
 import 'package:aws402_flutter/router/app_routes.dart';
+import 'package:aws402_flutter/service/watch_connection_service.dart';
+import 'package:aws402_flutter/watch/watch_bridge_client.dart';
+import 'package:aws402_flutter/watch/watch_client.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
+import 'firebase_options.dart';
 import 'mobile/mobile_api.dart';
 import 'mobile/location_permission_service.dart';
 
 import 'l10n/app_localizations.dart';
 
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage messages) async {
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  debugPrint('[백그라운드 수신] : ${messages.notification?.title}');
+}
+
 /// [인수인계] 초기화와 세션 확인을 마친 뒤 시작 화면으로 앱을 실행한다. 워치 어댑터는 runApp 이전에 등록한다.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // 앱 로딩중에 불러올 작업 작성
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  _watchService.startMonitoring(interval: const Duration(seconds: 5));  //5초 간격으로 워치의 연결 여부를 판단
   String startRoute = await authenticationUser();
+
+
   // await Future.delayed(const Duration(seconds: 3)); //임의로 3초 딜레이, 실 사용시에는 삭제
   // 구정민 : 수정 - 워치 담당자는 runApp 전에 WatchClient.instance에 실제 WatchBridgeClient를 등록한다.
+  final bridge = WatchBridgeClient(
+    onConnect: connect,
+    onDisconnect: disconnect,
+    onRequestMeasurement: requestMeasurement,
+  );
+  WatchClient.instance = bridge;
+
   // 구정민 : 수정 - 기본 연결 모듈은 미설정 상태이며 가상 연결·측정값을 생성하지 않는다.
   runApp(MyApp(initialRoute: startRoute));
 }
+
+Future<void> connect()async {}
+Future<void> disconnect()async {}
+Future<void> requestMeasurement()async {}
+
+final WatchConnectionService _watchService = WatchConnectionService();
 
 String initRoute = AppRoutes.home;
 
