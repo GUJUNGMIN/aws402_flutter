@@ -1,77 +1,76 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:aws402_flutter/models/work_state.dart';
 
+void saveNormal(WorkState state) =>
+    state.applyServerMeasurement(85, 36.5, 98, false, 'NORMAL');
+
 void main() {
-  test('근무 시작 → 휴식 → 재개 → 종료의 임시 이력을 기록한다', () {
+  test('근무 시작 → 휴식 → 재개 → 종료 이력을 기록한다', () {
     final state = WorkState();
-    final start = DateTime(2026, 11, 18, 9);
-    state.connectWatchForDemo();
-    state.checkHealthForDemo();
-    expect(state.startWork(now: start), isTrue);
-    expect(state.startRest(now: start.add(const Duration(minutes: 30))), isTrue);
-    expect(state.resumeWork(now: start.add(const Duration(minutes: 40))), isTrue);
-    expect(state.endWork(now: start.add(const Duration(hours: 2))), isTrue);
-    expect(state.workHistory, hasLength(1));
-    expect(state.workHistory.first.restDuration, const Duration(minutes: 10));
-    expect(state.workHistory.first.workingDuration, const Duration(minutes: 110));
+    final start = DateTime(2026, 11, 23, 9);
+    state.updateWatchConnection(true);
+    saveNormal(state);
+    expect(state.startWork(now: start), true);
+    expect(state.startRest(now: start.add(const Duration(minutes: 30))), true);
+    expect(state.resumeWork(now: start.add(const Duration(minutes: 40))), true);
+    expect(state.endWork(now: start.add(const Duration(hours: 2))), true);
+    expect(state.workHistory.single.restDuration, const Duration(minutes: 10));
+    expect(
+      state.workHistory.single.workingDuration,
+      const Duration(minutes: 110),
+    );
     expect(state.phase, WorkPhase.ready);
-    expect(state.initialHealthChecked, isFalse);
+    expect(state.initialHealthChecked, false);
+    expect(state.latestBpm, isNull);
   });
-
-  test('워치 연결·최초 건강 측정이 완료되어야 근무 시작 가능하다', () {
-    // 구정민 : 위치 확인 없이도 워치·건강 측정만 완료하면 근무를 시작할 수 있다.
+  test('실제 연결과 서버 정상 판정이 모두 있어야 시작한다', () {
     final state = WorkState();
-    expect(state.startWork(), isFalse);
-    state.connectWatchForDemo();
-    expect(state.startWork(), isFalse);
-    state.checkHealthForDemo();
-    expect(state.startWork(), isTrue);
-    state.disconnectWatchForDemo();
-    expect(state.watchConnected, isFalse);
-    expect(state.initialHealthChecked, isFalse);
+    expect(state.startWork(), false);
+    state.updateWatchConnection(true);
+    expect(state.startWork(), false);
+    state.applyServerMeasurement(95, 37.5, 95, false, 'NOTICE');
+    expect(state.startWork(), false);
+    saveNormal(state);
+    expect(state.startWork(), true);
+    state.updateWatchConnection(false);
+    expect(state.initialHealthChecked, false);
+    expect(state.hasSavedMeasurement, false);
   });
-
-  test('근무 종료 후 워치는 유지하고 다음 근무 전 건강 측정은 다시 한다', () {
-    final state = WorkState();
-    state.connectWatchForDemo();
-    expect(state.checkHealthForDemo(), isTrue);
-    expect(state.startWork(), isTrue);
-    expect(state.endWork(), isTrue);
-    // 구정민 : 종료 후 워치 연결은 유지되지만 재측정 전에는 새 근무를 시작할 수 없다.
-    expect(state.watchConnected, isTrue);
-    expect(state.initialHealthChecked, isFalse);
-    expect(state.canStartWork, isFalse);
-    expect(state.checkHealthForDemo(), isTrue);
-    expect(state.startWork(), isTrue);
+  test('근무 종료 후 워치는 유지하고 새 저장 정상 판정이 필요하다', () {
+    final state = WorkState()..updateWatchConnection(true);
+    saveNormal(state);
+    expect(state.startWork(), true);
+    expect(state.endWork(), true);
+    expect(state.watchConnected, true);
+    expect(state.canStartWork, false);
+    saveNormal(state);
+    expect(state.startWork(), true);
   });
-
-  test('워치 연결이 끊겼으면 재연결·건강 재측정 후 다음 근무를 시작한다', () {
-    final state = WorkState();
-    state.connectWatchForDemo();
-    state.checkHealthForDemo();
-    expect(state.startWork(), isTrue);
-    state.disconnectWatchForDemo();
-    expect(state.endWork(), isTrue);
-    expect(state.canStartWork, isFalse);
-    state.connectWatchForDemo();
-    expect(state.canStartWork, isFalse);
-    state.checkHealthForDemo();
-    expect(state.startWork(), isTrue);
+  test('연결 해제 후 재연결만으로 측정 완료가 복구되지 않는다', () {
+    final state = WorkState()..updateWatchConnection(true);
+    saveNormal(state);
+    state.updateWatchConnection(false);
+    state.updateWatchConnection(true);
+    expect(state.canStartWork, false);
+    expect(state.latestBpm, isNull);
+    saveNormal(state);
+    expect(state.canStartWork, true);
   });
-
-  test('위험 이벤트와 확인 상태를 앱 메모리에 보관한다', () {
+  test('서버 이력 화면용 기록의 확인 상태를 유지한다', () {
     final state = WorkState();
-    final event = state.addHealthEvent('위험');
-    event.action = '테스트 알림 확인';
-    expect(state.healthHistory.first.grade, '위험');
-    expect(state.healthHistory.first.action, '테스트 알림 확인');
+    final event = HealthHistoryEntry(
+      occurredAt: DateTime.now(),
+      grade: 'WARNING',
+      reason: '서버 판정',
+    );
+    state.healthHistory.add(event);
+    event.action = '확인';
+    expect(state.healthHistory.single.action, '확인');
   });
-
-  test('워치 테스트는 연결 후에만 측정할 수 있다', () {
+  test('연결되지 않은 상태의 정상값으로 시작할 수 없다', () {
     final state = WorkState();
-    expect(state.checkHealthForDemo(), isFalse);
-    state.connectWatchForDemo();
-    expect(state.checkHealthForDemo(), isTrue);
-    expect(state.initialHealthChecked, isTrue);
+    saveNormal(state);
+    expect(state.initialHealthChecked, false);
+    expect(state.canStartWork, false);
   });
 }

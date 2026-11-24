@@ -1,3 +1,11 @@
+# 헬스가드 Flutter 워치 연동 준비본
+
+최신 연동 경계와 팀원 작업 순서는 `WATCH_HANDOFF.txt`를 확인하세요.
+
+이번 health-guard-server와 함께 사용하세요. 측정 ID/실제 측정 시각 및 실제 DB 저장값 응답 계약이 추가되었습니다.
+
+실제 워치 통신 모듈은 팀원이 연결해야 합니다. 기본 실행은 미연결 상태이며 가상값을 생성하지 않습니다.
+
 # aws402_flutter
 
 A new Flutter project.

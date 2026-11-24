@@ -1,7 +1,11 @@
+// [인수인계] 화면 이름과 전달 인자를 정의한다. 잘못된 인자나 비활성 기능의 경로 진입을 검사한다.
+// 기능 연결 위치: 프로젝트의 HANDOFF_LOGIC.html / SOURCE_INDEX.txt
+
 import 'package:aws402_flutter/screens/signin_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../models/work_state.dart';
+import '../watch/watch_health_controller.dart';
 import '../screens/alert_screen.dart';
 import '../screens/health_check_screen.dart';
 import '../screens/health_history_screen.dart';
@@ -14,10 +18,8 @@ class WorkHistoryRouteArguments {
   final List<WorkHistoryEntry> entries;
   final DateTime? currentStart;
 
-  const WorkHistoryRouteArguments({
-    required this.entries,
-    this.currentStart,
-  });
+  /// [인수인계] 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  const WorkHistoryRouteArguments({required this.entries, this.currentStart});
 }
 
 class AppRoutes {
@@ -39,6 +41,7 @@ class AppRoutes {
 
   // 구정민 : 수정 - Navigator.pushNamed()의 인수를 RouteSettings에서 직접 검증한다.
   // HomeScreen의 휴식·상태 버튼이 호출하며, 결과 타입별 화면을 생성한다.
+  /// [인수인계] 화면별 필수 인자와 기능 표시 설정을 검사한 뒤 경로를 생성한다.
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case rest:
@@ -48,10 +51,10 @@ class AppRoutes {
           builder: (_) => RestScreen(startedAt: startedAt),
         );
       case healthCheck:
-        final state = _argument<WorkState>(settings);
+        final controller = _argument<WatchHealthController>(settings);
         return MaterialPageRoute<void>(
           settings: settings,
-          builder: (_) => HealthCheckScreen(workState: state),
+          builder: (_) => HealthCheckScreen(controller: controller),
         );
       case workHistory:
         final args = _argument<WorkHistoryRouteArguments>(settings);
@@ -69,10 +72,15 @@ class AppRoutes {
           builder: (_) => HealthHistoryScreen(entries: entries),
         );
       case alert:
-        final type = _argument<String>(settings);
+        // 구정민 : 수정 - 서버 판정에 사용된 워치 측정값을 기존 알림 화면에 함께 전달한다.
+        final argument = settings.arguments;
+        final data = argument is AlertRouteArguments
+            ? argument
+            : AlertRouteArguments(type: _argument<String>(settings));
         return MaterialPageRoute<String>(
           settings: settings,
-          builder: (_) => AlertScreen(type: type),
+          builder: (_) =>
+              AlertScreen(type: data.type, measurement: data.measurement),
         );
       default:
         return null;
@@ -83,6 +91,10 @@ class AppRoutes {
   static T _argument<T>(RouteSettings settings) {
     final value = settings.arguments;
     if (value is T) return value;
-    throw ArgumentError('Route ${settings.name} requires arguments of type $T.');
+
+    /// [인수인계] 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+    throw ArgumentError(
+      'Route ${settings.name} requires arguments of type $T.',
+    );
   }
 }

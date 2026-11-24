@@ -1,8 +1,12 @@
+// [인수인계] 처리 중 표시와 닫기 동작을 공통화한다.
+// 기능 연결 위치: 프로젝트의 HANDOFF_LOGIC.html / SOURCE_INDEX.txt
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class LoadingDialog {
   // 로딩 다이얼로그 띄우기
+  /// [인수인계] 처리 중 다이얼로그를 표시한다.
   static void show(BuildContext context, {String? message}) {
     showDialog(
       context: context,
@@ -18,9 +22,7 @@ class LoadingDialog {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const CircularProgressIndicator(
-                    color: Colors.white,
-                  ),
+                  const CircularProgressIndicator(color: Colors.white),
                   if (message != null) ...[
                     const SizedBox(height: 16),
                     Text(
@@ -42,6 +44,7 @@ class LoadingDialog {
   }
 
   // 로딩 다이얼로그 닫기
+  /// [인수인계] 표시 중인 처리 다이얼로그를 닫는다.
   static void hide(BuildContext context) {
     if (Navigator.of(context, rootNavigator: true).canPop()) {
       Navigator.of(context, rootNavigator: true).pop();

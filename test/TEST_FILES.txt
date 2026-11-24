@@ -1,0 +1,10 @@
+
+테스트 파일명 정리 (v2)
+- Flutter test/는 자동 검증용 표준 폴더이며 유지합니다.
+- mobile_demo_measurement_test.dart → watch_measurement_api_test.dart
+- widget_test.dart → app_startup_test.dart
+- 기존 검증 내용은 보존하고 파일명만 현재 역할에 맞췄습니다.
+- fake_watch_client.dart / mobile_api_stub.dart는 테스트 전용 모의 장치/응답 도우미입니다.
+- 실제 앱의 워치 연결 구현은 lib/watch/에 있으며 테스트 도우미와 구분합니다.
+- 일반 자동 검증 파일의 _test.dart 접미사는 유지합니다.
+- contracts/real_server_contract.dart는 별도 서버 주소를 지정해 명시 실행하는 연동 검사입니다.

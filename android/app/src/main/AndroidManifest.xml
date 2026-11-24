@@ -1,6 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 구정민 : STEP 2 건강값/GPS 전송용 권한. GPS를 받지 못해도 건강 전송은 진행한다. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- 구정민 : cleartextTraffic은 로컬 http:// 개발 서버 전용이며 운영 배포 시 HTTPS로 전환한다. -->
     <application
         android:label="헬스가드"
+        android:usesCleartextTraffic="true"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

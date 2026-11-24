@@ -15,6 +15,8 @@ dependencies:
 
   shared_preferences: ^2.5.6  #shared preferences 사용
   dio: ^5.11.1  #비동기 통신
+  # 구정민 : 실제 GPS 위치를 선택적으로 측정해 서버로 전송한다. 사전 위치 확인 화면은 사용하지 않는다.
+  geolocator: ^14.0.2
   toastification: ^3.2.2  #toast 메세지
 
 
