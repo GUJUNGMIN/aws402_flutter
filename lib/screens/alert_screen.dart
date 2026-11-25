@@ -1,10 +1,12 @@
-// [인수인계] 서버 판정으로 전달된 알림을 표시한다. 외부 전화·담당자 메시지 전송은 구현된 것으로 취급하지 않는다.
+// [인수인계] 서버 판정 알림에서 휴식 또는 등록 담당자 연락처를 선택할 수 있다.
 // 기능 연결 위치: 프로젝트의 HANDOFF_LOGIC.html / SOURCE_INDEX.txt
 
 import 'package:flutter/material.dart';
 
+import '../widgets/person_in_charge_contact.dart';
+
 // 구정민 : 수정 - 워치 측정의 서버 판정 결과로 열리는 공통 경보 화면이다.
-// 등급별 색상·발생 원인·조치 버튼을 구분하고, 결과는 Navigator.pop()으로 HomeScreen에 반환한다.
+// 등급별 색상과 조치를 구분한다. 휴식 결과는 HomeScreen에 반환하고 전화 연결은 이 화면에서 연다.
 // 구정민 : 서버가 판정한 건강 수치를 기존 등급별 UI에 전달하는 명명 라우트 인수.
 class AlertRouteArguments {
   final String type;
@@ -74,18 +76,8 @@ class AlertScreen extends StatelessWidget {
     final String primaryLabel = isNotice
         ? '휴식 시작'
         : isWarning || isDanger
-        ? '담당자 알림 준비 중'
+        ? '담당자 연결'
         : '긴급 SOS 준비 중';
-    final String primaryResult = isNotice
-        ? 'rest'
-        : isWarning || isDanger
-        ? 'notify'
-        : 'sos';
-    final String secondaryLabel = isNotice || isWarning
-        ? '닫기'
-        : isDanger
-        ? '요청 취소 (괜찮아요)'
-        : '닫기';
     const String secondaryResult = 'ack';
 
     /// [인수인계] 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
@@ -217,7 +209,7 @@ class AlertScreen extends StatelessWidget {
                         Text(
                           measurement == null
                               ? '측정 정보가 없습니다.'
-                              : '워치 측정값의 서버 판정입니다. 외부 연락 기능은 준비 중입니다.',
+                              : '워치 측정값에 대한 서버 판정입니다.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 12,
@@ -229,9 +221,10 @@ class AlertScreen extends StatelessWidget {
                           height: 55,
                           width: double.infinity,
                           child: FilledButton(
-                            // 구정민 : 기존 결과 코드(rest/notify/sos)를 유지해 HomeScreen 조치 처리와 연결한다.
-                            onPressed: isNotice && measurement != null
-                                ? () => Navigator.pop(context, primaryResult)
+                            onPressed: isWarning || isDanger
+                                ? () => showPersonInChargeContact(context)
+                                : isNotice && measurement != null
+                                ? () => Navigator.pop(context, 'rest')
                                 : null,
                             style: FilledButton.styleFrom(
                               backgroundColor: accent,
@@ -248,12 +241,50 @@ class AlertScreen extends StatelessWidget {
                             ),
                           ),
                         ),
+                        if (isWarning || isDanger) ...[
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            height: 52,
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () => showPersonInChargeContact(
+                                context,
+                                emergencyPreview: true,
+                              ),
+                              icon: const Icon(Icons.phone_outlined),
+                              label: const Text(
+                                '119',
+                                style: TextStyle(
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: accent,
+                                backgroundColor: Colors.white,
+                                side: BorderSide(color: accent, width: 1.5),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(9),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          const Text(
+                            '테스트 연결 · 담당자 번호 사용',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF616773),
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 8),
                         SizedBox(
                           height: 52,
                           width: double.infinity,
                           child: OutlinedButton(
-                            // 구정민 : 닫기·취소 결과를 HomeScreen으로 반환한다. 외부 연락 기능은 별도 연동이 필요하다.
+                            // 알림 화면을 닫고 이전 화면으로 돌아간다.
                             onPressed: () =>
                                 Navigator.pop(context, secondaryResult),
                             style: OutlinedButton.styleFrom(
@@ -264,7 +295,7 @@ class AlertScreen extends StatelessWidget {
                               ),
                             ),
                             child: Text(
-                              secondaryLabel,
+                              '닫기',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,

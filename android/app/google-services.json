@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1080169614075",
+    "project_id": "healthguard-fe21c",
+    "storage_bucket": "healthguard-fe21c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1080169614075:android:7aa5125fbccabcc728fe5e",
+        "android_client_info": {
+          "package_name": "bitc.aws402.aws402_flutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUkUyig7QyDSFMjW4LeMn54elg-inh5ZI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

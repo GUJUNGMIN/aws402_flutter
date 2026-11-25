@@ -7,6 +7,7 @@ import 'package:aws402_flutter/router/app_routes.dart';
 import 'package:aws402_flutter/screens/alert_screen.dart';
 import 'package:aws402_flutter/service/notification_service.dart';
 import 'package:aws402_flutter/widgets/main_widget.dart';
+import 'package:aws402_flutter/widgets/person_in_charge_contact.dart';
 import 'package:aws402_flutter/widgets/topbar_widget.dart';
 import 'package:aws402_flutter/widgets/work_widget.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final WorkState _work = WorkState();
   late final WatchHealthController _health;
   bool _changingWork = false;
+  bool _signingOut = false;
   HomeDashboard? _dashboard;
   bool _dashboardLoading = true;
   bool _dashboardFailed = false;
@@ -69,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  Future<void> _initFcm () async {
+  Future<void> _initFcm() async {
     await NotificationService.initialize();
   }
 
@@ -181,7 +183,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted && goToCheck == true) await _openHealthCheck();
       return;
     }
-    if (_changingWork) return;
+    if (_changingWork || _signingOut) return;
     _changingWork = true;
     try {
       await MobileApi.instance.workEvent('START');
@@ -222,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
-    if (!mounted || confirmed != true || _changingWork) return;
+    if (!mounted || confirmed != true || _changingWork || _signingOut) return;
     _changingWork = true;
     try {
       await MobileApi.instance.workEvent('END');
@@ -249,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // 구정민 : 수정 - 휴식·재개 역시 WORK_LIST에 먼저 기록한 뒤 화면 상태를 갱신한다.
   /// [인수인계] REST/RESUME을 먼저 서버에 기록한 뒤 화면과 휴식 시각을 변경한다.
   Future<void> _startRest() async {
-    if (_changingWork) return;
+    if (_changingWork || _signingOut) return;
     _changingWork = true;
     try {
       if (_work.isResting) {
@@ -318,7 +320,44 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// [인수인계] 외부 연락 기능이 아직 구현되지 않았음을 안내한다.
+  /// 프로필에서 로그아웃을 확인하고 서버 응답 후 로그인 화면으로 이동한다.
+  Future<void> _logout() async {
+    if (_signingOut || _changingWork) return;
+    _signingOut = true;
+    try {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('로그아웃'),
+          content: const Text('이 기기의 로그인 세션을 종료할까요?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('취소'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('로그아웃'),
+            ),
+          ],
+        ),
+      );
+      if (!mounted || confirmed != true) return;
+      await MobileApi.instance.logout();
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.signin,
+        (_) => false,
+      );
+    } catch (error) {
+      _showError(error);
+    } finally {
+      _signingOut = false;
+    }
+  }
+
+  /// 응급 SOS 미연결 상태를 안내한다.
   void _showContactUnavailable(String action) =>
       _message('$action 기능은 아직 연결되지 않았습니다.');
 
@@ -335,19 +374,13 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
     if (!mounted) return;
-    // 구정민 : 수정 - 외부 연락 기능은 실제 연동 전까지 준비 중으로 안내한다.
+    // 휴식은 근무 상태를 관리하는 홈에서 처리한다.
     switch (result) {
       case 'rest':
         if (_work.isWorking) await _startRest();
         break;
-      case 'notify':
-        _showContactUnavailable('담당자 알림');
-        break;
       case 'sos':
         _showContactUnavailable('SOS');
-        break;
-      case 'call119':
-        _showContactUnavailable('119 신고');
         break;
       default:
         break;
@@ -362,6 +395,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(80.0),
         child: TopbarWidget(
+          onProfilePressed: _logout,
           dashboard: _dashboard,
           loading: _dashboardLoading,
           failed: _dashboardFailed,
@@ -376,6 +410,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ? MainWidget(
                   onButtonPressed: _startWork,
                   onHealthCheckPressed: _openHealthCheck,
+                  onContactPressed: () => showPersonInChargeContact(context),
                   onWorkHistoryPressed: _openWorkHistory,
                   onHealthHistoryPressed: _openHealthHistory,
                   healthCheckCompleted: _work.initialHealthChecked,
@@ -400,7 +435,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   onRestPressed: _startRest,
                   onHistoryPressed: _openWorkHistory,
                   onHealthHistoryPressed: _openHealthHistory,
-                  onContactPressed: () => _showContactUnavailable('담당자 연결'),
+                  onContactPressed: () => showPersonInChargeContact(context),
                   weather: _dashboard?.weather,
                   weatherLoading: _dashboardLoading,
                   weatherFailed: _dashboardFailed,

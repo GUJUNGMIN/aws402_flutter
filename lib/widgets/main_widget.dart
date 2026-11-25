@@ -8,7 +8,6 @@ import '../mobile/home_dashboard.dart';
 import 'weather_summary_widget.dart';
 import 'health_metric_card.dart';
 import '../utils/color_extension.dart';
-import '../utils/toast.dart';
 
 class MainWidget extends StatelessWidget {
   final VoidCallback onButtonPressed;
@@ -16,6 +15,7 @@ class MainWidget extends StatelessWidget {
   final VoidCallback onHealthCheckPressed;
   final VoidCallback onWorkHistoryPressed;
   final VoidCallback onHealthHistoryPressed;
+  final VoidCallback? onContactPressed;
   final bool healthCheckCompleted;
   final bool watchConnected;
   // 구정민 : 수정 - 서버 저장 확인된 건강 결과를 근무 전에도 표시한다.
@@ -35,6 +35,7 @@ class MainWidget extends StatelessWidget {
     required this.onHealthCheckPressed,
     required this.onWorkHistoryPressed,
     required this.onHealthHistoryPressed,
+    this.onContactPressed,
     required this.healthCheckCompleted,
     required this.watchConnected,
     this.measurementSaved = false,
@@ -256,9 +257,7 @@ class MainWidget extends StatelessWidget {
             ),
             padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
           ),
-          onPressed: () {
-            Toast.showToast(context, '담당자 연락 기능은 아직 연결되지 않았습니다.');
-          },
+          onPressed: onContactPressed,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

@@ -15,6 +15,7 @@ class TopbarWidget extends StatelessWidget {
   final bool loading;
   final bool failed;
   final WorkPhase workPhase;
+  final VoidCallback? onProfilePressed;
 
   // 구정민 : 수정 - 근무 상태는 HomeScreen에서 전달받아 배정 정보의 조기 노출을 막는다.
   /// [인수인계] 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
@@ -24,6 +25,7 @@ class TopbarWidget extends StatelessWidget {
     this.loading = false,
     this.failed = false,
     this.workPhase = WorkPhase.ready,
+    this.onProfilePressed,
   });
 
   @override
@@ -66,9 +68,11 @@ class TopbarWidget extends StatelessWidget {
             children: [
               Expanded(
                 child: GestureDetector(
-                  onTap: () {
-                    Toast.showToast(context, '내 정보 화면');
-                  },
+                  onTap:
+                      onProfilePressed ??
+                      () {
+                        Toast.showToast(context, '내 정보 화면');
+                      },
                   child: Row(
                     children: [
                       // 구정민 : 수정 - 외부 프로필 이미지를 유지하고 403 등 로딩 실패 시에만 기본 아이콘을 표시한다.

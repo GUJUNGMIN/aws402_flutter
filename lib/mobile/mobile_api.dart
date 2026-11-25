@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'location_permission_service.dart';
 import 'home_dashboard.dart';
+import 'person_in_charge.dart';
 import 'history_summaries.dart';
 import '../models/health_measurement.dart';
 
@@ -44,8 +45,7 @@ class MobileApi {
   /// [인수인계] 현재 토큰을 X-Mobile-Session 헤더에 넣는다.
   Options get _authorized => Options(headers: {'X-Mobile-Session': _token});
 
-  // 구정민 : 앱 재실행 시 저장된 임시 세션을 서버로 검증한다. 서버가 재시작하면 로그인 화면으로 돌아간다.
-  /// [인수인계] 로컬 토큰을 /auth/me로 검증한다. 만료·서버 재시작·통신 실패 시 로컬 세션을 지운다.
+  /// [인수인계] 로컬 토큰을 /auth/me로 검증한다. 401일 때 토큰을 지우고 일시적 통신 실패에는 보관한다.
   Future<bool> restoreSession() async {
     final prefs = await SharedPreferences.getInstance();
     _token = prefs.getString('mobile_session');
@@ -58,9 +58,12 @@ class MobileApi {
       _userIdx = (data.data?['userIdx'] as num).toInt();
       _name = data.data?['name']?.toString();
       return true;
-    } catch (_) {
-      await clearSession();
-      return false;
+    } on DioException catch (error) {
+      if (error.response?.statusCode == 401) {
+        await clearSession();
+        return false;
+      }
+      return true;
     }
   }
 
@@ -76,6 +79,20 @@ class MobileApi {
     _name = data['name'].toString();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('mobile_session', _token!);
+  }
+
+  /// 서버 세션 폐기를 확인한 뒤 휴대폰에 저장된 로그인 정보를 지운다.
+  Future<void> logout() async {
+    if (isAuthenticated) {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/api/mobile/auth/logout',
+        options: _authorized,
+      );
+      if (response.data?['loggedOut'] != true) {
+        throw StateError('서버에서 로그아웃을 확인하지 못했습니다.');
+      }
+    }
+    await clearSession();
   }
 
   /// [인수인계] 앱 메모리와 SharedPreferences의 토큰을 지운다. 이 함수 자체는 서버 logout API를 호출하지 않는다.
@@ -95,6 +112,20 @@ class MobileApi {
       options: _authorized,
     );
     return HomeDashboard.fromJson(response.data!);
+  }
+
+  /// 현재 로그인한 사용자의 담당자 연락처만 읽는다.
+  Future<List<PersonInCharge>> personInChargeContacts() async {
+    final response = await _dio.get<List<dynamic>>(
+      '/api/mobile/contacts/pic',
+      options: _authorized,
+    );
+    return (response.data ?? const [])
+        .map(
+          (row) =>
+              PersonInCharge.fromJson(Map<String, dynamic>.from(row as Map)),
+        )
+        .toList(growable: false);
   }
 
   /// [인수인계] 인증 없이 서버의 ping 응답을 확인한다.
