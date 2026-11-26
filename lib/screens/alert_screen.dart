@@ -68,17 +68,16 @@ class AlertScreen extends StatelessWidget {
     final String guidance = isNotice
         ? '잠시 휴식하고 수분을 섭취하세요.'
         : isWarning
-        ? '작업을 중단하고 담당자에게 알리세요.'
+        ? '작업을 멈추고 휴식을 취하세요.'
         : isDanger
         ? '담당자에게 즉시 도움을 요청하세요.'
         : '긴급 도움 요청이 필요한 상황입니다.';
 
     final String primaryLabel = isNotice
-        ? '휴식 시작'
-        : isWarning || isDanger
-        ? '담당자 연결'
-        : '긴급 SOS 준비 중';
-    const String secondaryResult = 'ack';
+        ? '닫기'
+        : isWarning
+        ? '휴식하기'
+        : '담당자 연결';
 
     /// [인수인계] 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
     return Scaffold(
@@ -221,11 +220,13 @@ class AlertScreen extends StatelessWidget {
                           height: 55,
                           width: double.infinity,
                           child: FilledButton(
-                            onPressed: isWarning || isDanger
-                                ? () => showPersonInChargeContact(context)
-                                : isNotice && measurement != null
-                                ? () => Navigator.pop(context, 'rest')
-                                : null,
+                            onPressed: isNotice
+                                ? () => Navigator.pop(context, 'ack')
+                                : isWarning
+                                ? measurement == null
+                                      ? null
+                                      : () => Navigator.pop(context, 'rest')
+                                : () => showPersonInChargeContact(context),
                             style: FilledButton.styleFrom(
                               backgroundColor: accent,
                               shape: RoundedRectangleBorder(
@@ -241,7 +242,7 @@ class AlertScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        if (isWarning || isDanger) ...[
+                        if (type == 'emergency') ...[
                           const SizedBox(height: 8),
                           SizedBox(
                             height: 52,
@@ -279,31 +280,6 @@ class AlertScreen extends StatelessWidget {
                             ),
                           ),
                         ],
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          height: 52,
-                          width: double.infinity,
-                          child: OutlinedButton(
-                            // 알림 화면을 닫고 이전 화면으로 돌아간다.
-                            onPressed: () =>
-                                Navigator.pop(context, secondaryResult),
-                            style: OutlinedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              side: BorderSide(color: accent, width: 1.5),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(9),
-                              ),
-                            ),
-                            child: Text(
-                              '닫기',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: accent,
-                              ),
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                   ],

@@ -1,0 +1,605 @@
+소스 역할 및 함수 위치 — 2026-11-23
+기준: 기존 ERD 유지 / 주석·정렬 완료본
+경로는 각 프로젝트 최상위 기준입니다. 자동 생성 l10n은 제외합니다.
+
+[aws402_flutter] lib/config/step2_feature_flags.dart
+역할: 표시 가능한 알림/낙상 기능을 한곳에서 제어한다. 숨긴 기능의 수신·화면 이동도 이 설정을 따른다.
+  L14 isEmergencyStatus — 서버 등급이 현재 숨김 대상인 응급 상태인지 확인한다.
+
+[aws402_flutter] lib/main.dart
+역할: 앱 시작 시 세션을 확인하고 첫 화면을 선택한다. 첫 프레임 후 위치 권한을 확인하며 워치 어댑터는 runApp 전에 등록한다.
+  L13 main — 초기화와 세션 확인을 마친 뒤 시작 화면으로 앱을 실행한다. 워치 어댑터는 runApp 이전에 등록한다.
+  L27 authenticationUser — 저장 토큰을 서버로 확인해 홈 또는 로그인 시작 경로를 결정한다.
+  L36 MyApp — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L40 createState — 이 화면 인스턴스에 대응하는 State 객체를 만든다.
+  L46 initState — 화면 최초 생성 시 필요한 구독·조회·타이머를 초기화한다. dispose와 함께 확인한다.
+  L57 build — 현재 상태를 위젯으로 구성한다. 네트워크 저장과 판정 계산은 컨트롤러/서비스에서 처리한다.
+  L59 MaterialApp — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+
+[aws402_flutter] lib/mobile/history_summaries.dart
+역할: 서버가 집계한 기간별 근무·알림 이력 응답을 표시 모델로 변환한다.
+  L20 WorkSummary — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L36 fromJson — 서버 응답 JSON을 WorkSummary 모델로 변환한다. 날짜/누락 필드는 이 변환부와 서버 계약을 함께 확인한다.
+  L63 StatusEvent — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L70 fromJson — 서버 응답 JSON을 StatusEvent 모델로 변환한다. 날짜/누락 필드는 이 변환부와 서버 계약을 함께 확인한다.
+  L85 DailyStatusSummary — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L94 fromJson — 서버 응답 JSON을 DailyStatusSummary 모델로 변환한다. 날짜/누락 필드는 이 변환부와 서버 계약을 함께 확인한다.
+
+[aws402_flutter] lib/mobile/home_dashboard.dart
+역할: 서버가 조회한 사용자·일자리·기상 JSON을 표시용 모델로 변환한다. 기상 센서값과 워치 피부온도를 혼동하지 않는다.
+  L12 HomeDashboard — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L20 fromJson — 서버 응답 JSON을 HomeDashboard 모델로 변환한다. 날짜/누락 필드는 이 변환부와 서버 계약을 함께 확인한다.
+  L24 HomeDashboard — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L54 WeatherSnapshot — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L71 fromJson — 서버 응답 JSON을 WeatherSnapshot 모델로 변환한다. 날짜/누락 필드는 이 변환부와 서버 계약을 함께 확인한다.
+  L121 WeatherObservation — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L128 fromJson — 서버 응답 JSON을 WeatherObservation 모델로 변환한다. 날짜/누락 필드는 이 변환부와 서버 계약을 함께 확인한다.
+
+[aws402_flutter] lib/mobile/location_permission_service.dart
+역할: 휴대폰 위치 권한 요청과 현재 좌표 조회를 분리한다. 위치가 없어도 건강 측정 저장은 계속할 수 있다.
+  L22 requestOnAppStart — 앱 시작 시 필요한 권한만 요청한다. 이미 허용됐거나 영구 거부된 권한을 반복 요청하지 않는다.
+  L35 checkStatus — 위치 서비스 활성 여부와 현재 OS 권한을 확인한다.
+  L56 requestAccess — 사용자 동작에 따라 OS 위치 권한을 요청하고 결과 상태를 반환한다.
+  L73 openAppSettings — 영구 거부 등으로 직접 변경이 필요할 때 OS 앱 설정을 연다.
+  L76 openLocationSettings — OS 위치 서비스 설정 화면을 연다.
+  L82 tryCurrentPosition — 새 권한 팝업 없이 허용된 경우에만 좌표를 조회한다. 실패/거부는 null로 반환한다.
+
+[aws402_flutter] lib/mobile/mobile_api.dart
+역할: Flutter와 /api/mobile 사이 HTTP·세션·오류 변환을 담당한다. 서버 저장값을 응답받고 GPS는 전송 직전 선택적으로 첨부한다.
+  L27 MobileApi — 필요한 의존성/콜백/초기값으로 MobileApi 객체를 구성한다.
+  L45 _authorized — 현재 토큰을 X-Mobile-Session 헤더에 넣는다.
+  L49 restoreSession — 로컬 토큰을 /auth/me로 검증한다. 401일 때 토큰을 지우고 일시적 연결 실패에는 보관한다.
+  L68 login — 로그인 성공 응답의 토큰을 저장하고 사용자 이름/번호를 메모리에 반영한다.
+  L82 clearSession — 앱 메모리와 SharedPreferences의 토큰을 지운다. 이 함수 자체는 서버 logout API를 호출하지 않는다.
+  L92 homeDashboard — 인증 헤더로 홈 데이터를 조회하고 표시 모델로 변환한다.
+  L101 ping — 인증 없이 서버의 ping 응답을 확인한다.
+  L105 dbCheck — 서버가 DB를 읽을 수 있는지 진단 응답을 받는다.
+  L111 sendMeasurement — 현재 휴대폰 GPS를 선택 첨부해 /measurements에 POST한다. 수치와 판정은 이 함수에서 만들어 내지 않는다.
+  L126 workEvent — START/REST/RESUME/END 의사를 서버에 전달한다. 성공 후의 화면 전환은 호출 화면이 처리한다.
+  L134 workStatus — 서버의 현재 근무 단계를 조회한다. 워치 연결 상태를 복원하는 API는 아니다.
+  L141 history — 지원되는 이력 종류와 날짜를 검증해 조회한다. 건강 이력의 시각은 서버 수신 기준이다.
+  L161 workSummaries — 기간별 근무 요약을 서버에서 집계해 받는다.
+  L176 statusSummaries — 날짜별 상태 변경 알림의 건수와 발생 시각을 받는다.
+  L195 _rangeQuery — 조회 시작/종료일을 서버의 from/to 쿼리로 변환한다.
+  L201 _formatDate — 날짜를 서버가 요구하는 yyyy-MM-dd 형식으로 만든다.
+  L207 errorMessage — HTTP 인증/입력/서버 오류를 화면 안내 문구로 바꾼다. 여기서 재전송을 예약하지 않는다.
+
+[aws402_flutter] lib/models/health_measurement.dart
+역할: 같은 측정 묶음의 ID·실제 측정 시각·심박·피부온도·산소포화도를 표현한다. 정상값을 만들어 누락을 채우지 않는다.
+  L14 HealthMeasurement — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L25 fromServerJson — 저장 응답의 ID·실제 측정 시각·세 수치를 파싱한다. 요청값을 그대로 저장 성공값으로 재사용하지 않는다.
+  L55 isValid — 전송에 필요한 ID/유한 수치/센서 범위가 유효한지 검사한다. 건강 정상 판정을 뜻하지 않는다.
+  L67 toJson — 워치 측정 묶음을 UTC 시각과 센서 필드로 직렬화한다. steps/강제 판정은 포함하지 않는다.
+
+[aws402_flutter] lib/models/work_state.dart
+역할: 앱의 근무 단계와 서버 저장 확인된 측정값을 보관한다. 화면 메모리 상태와 DB 영구 기록은 구분한다.
+  L13 WorkHistoryEntry — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L20 workingDuration — 화면용 근무 구간에서 휴식을 빼고 음수 결과는 0으로 제한한다.
+  L33 HealthHistoryEntry — 필요한 의존성/콜백/초기값으로 HealthHistoryEntry 객체를 구성한다.
+  L57 canStartWork — 대기 상태·워치 실제 연결·서버 NORMAL 최초 측정 조건이 모두 충족됐는지 반환한다.
+  L72 applyServerMeasurement — 검증된 저장 응답 수치와 등급을 반영한다. 연결 중 NORMAL일 때만 최초 측정 시작 조건을 만족시킨다.
+  L92 markServerFailure — 통신 실패를 표시하되 이미 저장 확인된 이전 수치/판정을 정상으로 덮어쓰지 않는다.
+  L99 restorePhase — 서버의 근무 단계만 복원한다. 앱의 경과 시간은 화면용이며 서버 이력과 별개다.
+  L111 updateWatchConnection — 실제 연결 이벤트를 반영하고 해제되면 최초 측정 결과를 초기화한다.
+  L117 resetInitialMeasurement — 서버의 기존 HEALTH 기록은 지우지 않고 앱의 이번 측정 표시/시작 허용만 초기화한다.
+  L131 startWork — 화면 상태에서 연결·정상 최초 측정 조건을 검사한다. WORK_LIST 저장은 호출부 API에서 별도로 수행한다.
+  L143 startRest — 근무 중에만 화면의 휴식 시작 시각을 설정한다.
+  L152 resumeWork — 휴식 시간을 화면용 합계에 더하고 근무 상태로 되돌린다.
+  L163 endWork — 화면용 근무 기록을 만들고 다음 근무의 최초 측정 상태를 초기화한다.
+
+[aws402_flutter] lib/router/app_routes.dart
+역할: 화면 이름과 전달 인자를 정의한다. 잘못된 인자나 비활성 기능의 경로 진입을 검사한다.
+  L22 WorkHistoryRouteArguments — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L45 onGenerateRoute — 화면별 필수 인자와 기능 표시 설정을 검사한 뒤 경로를 생성한다.
+  L96 ArgumentError — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+
+[aws402_flutter] lib/screens/alert_screen.dart
+역할: 서버 판정으로 전달된 알림을 표시한다. 외부 전화·담당자 메시지 전송은 구현된 것으로 취급하지 않는다.
+  L14 AlertRouteArguments — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L22 AlertScreen — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L26 build — 현재 상태를 위젯으로 구성한다. 네트워크 저장과 판정 계산은 컨트롤러/서비스에서 처리한다.
+  L92 Scaffold — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+
+[aws402_flutter] lib/screens/health_check_screen.dart
+역할: 같은 WatchHealthController로 실제 연결과 최초 측정을 요청하고 저장 진행/완료 상태를 보여준다.
+  L16 HealthCheckScreen — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L20 createState — 이 화면 인스턴스에 대응하는 State 객체를 만든다.
+  L30 initState — 화면 최초 생성 시 필요한 구독·조회·타이머를 초기화한다. dispose와 함께 확인한다.
+  L39 dispose — 화면/객체가 사라질 때 등록한 구독·리스너·타이머를 정리한다.
+  L47 didChangeAppLifecycleState — OS 설정에서 앱으로 돌아오면 위치 권한 상태를 다시 읽는다.
+  L53 _refreshGpsStatus — 현재 OS 권한/위치 서비스 상태를 읽어 화면 안내를 갱신한다.
+  L64 _requestGpsPermission — 현재 권한 상태에 맞춰 OS 권한 요청 또는 앱/위치 설정 이동을 수행한다. 건강 저장의 필수 조건은 아니다.
+  L121 _healthChanged — 공유 측정 컨트롤러가 변경되면 화면을 다시 그린다.
+  L127 build — 현재 상태를 위젯으로 구성한다. 네트워크 저장과 판정 계산은 컨트롤러/서비스에서 처리한다.
+  L134 Scaffold — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L265 _statusTile — 권한/연결 항목의 표시 상태와 선택 동작을 한 행으로 구성한다.
+
+[aws402_flutter] lib/screens/health_history_screen.dart
+역할: 기간별 상태 발생 집계와 날짜별 건강 저장값을 조회한다. 건강 이력 시간은 기존 DB의 서버 수신 시각이다.
+  L19 HealthHistoryScreen — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L22 createState — 이 화면 인스턴스에 대응하는 State 객체를 만든다.
+  L42 initState — 화면 최초 생성 시 필요한 구독·조회·타이머를 초기화한다. dispose와 함께 확인한다.
+  L52 _load — 조회 조건으로 이력을 다시 읽는다. 늦게 온 이전 요청 결과가 현재 화면을 덮지 않게 한다.
+  L92 _statusName — 서버 상태 코드를 표시용 한글 문구로 변환한다.
+  L100 _statusColor — 이미 결정된 서버 등급에 대응하는 표시 색상을 선택한다.
+  L108 _dayCard — 하루의 상태 발생 횟수와 펼칠 수 있는 발생 시각 목록을 구성한다.
+  L155 Card — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L216 _loadHealth — 선택 날짜의 건강 저장 이력을 조회하고 로딩·오류·더보기 상태를 갱신한다.
+  L248 _pickHealthDate — 건강 이력 조회일을 선택하고 해당 날짜의 저장값을 다시 읽는다.
+  L264 _loadHealth — 선택 날짜의 건강 저장 이력을 조회하고 로딩·오류·더보기 상태를 갱신한다.
+  L268 _measurements — 날짜별 건강 이력과 수신 기준 시각을 화면에 표시한다.
+  L353 build — 현재 상태를 위젯으로 구성한다. 네트워크 저장과 판정 계산은 컨트롤러/서비스에서 처리한다.
+
+[aws402_flutter] lib/screens/home_screen.dart
+역할: 근무 상태·대시보드·워치 컨트롤러를 연결한다. 근무 이벤트의 서버 성공 후 화면과 상단바를 동기화한다.
+  L22 HomeScreen — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L25 createState — 이 화면 인스턴스에 대응하는 State 객체를 만든다.
+  L41 initState — 화면 최초 생성 시 필요한 구독·조회·타이머를 초기화한다. dispose와 함께 확인한다.
+  L64 dispose — 화면/객체가 사라질 때 등록한 구독·리스너·타이머를 정리한다.
+  L72 _restoreWorkStatus — 서버에서 근무 단계를 복원하며 워치 실제 연결은 새로 확인한다.
+  L88 _loadHomeDashboard — 홈 정보를 조회한다. 요청 버전을 비교해 근무 전환 전의 늦은 응답을 무시한다.
+  L124 _showError — 오류를 공통 API 문구로 변환해 표시한다.
+  L131 _message — 현재 홈에 짧은 작업 결과 안내를 표시한다.
+  L138 _healthChanged — 공유 건강 상태 변경을 setState로 화면에 반영한다.
+  L144 _startWork — 측정/전송 완료와 시작 조건을 검사한 뒤 START 저장 성공에 맞춰 근무 화면·상단바를 갱신한다.
+  L201 _endWork — 종료 확인 후 END 저장에 성공해야 화면을 종료하고 다음 근무의 새 측정을 요구한다.
+  L245 _startRest — REST/RESUME을 먼저 서버에 기록한 뒤 화면과 휴식 시각을 변경한다.
+  L284 _openHealthCheck — 홈과 같은 건강 컨트롤러를 측정 화면에 전달해 상태가 이중 생성되지 않게 한다.
+  L295 _openWorkHistory — 서버 근무 이력 조회 화면을 연다.
+  L307 _openHealthHistory — 서버 상태/건강 이력 조회 화면을 연다.
+  L316 _showContactUnavailable — 외부 연락 기능이 아직 구현되지 않았음을 안내한다.
+  L320 _openAlert — 서버의 상태 변경 판정에 해당하는 알림 화면을 연다.
+  L353 build — 현재 상태를 위젯으로 구성한다. 네트워크 저장과 판정 계산은 컨트롤러/서비스에서 처리한다.
+  L355 Scaffold — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+
+[aws402_flutter] lib/screens/rest_screen.dart
+역할: 휴식 중 화면과 경과 표시를 담당한다. 재개 의사를 홈에 반환하고 서버 이벤트 처리 흐름과 연결한다.
+  L12 RestScreen — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L16 build — 현재 상태를 위젯으로 구성한다. 네트워크 저장과 판정 계산은 컨트롤러/서비스에서 처리한다.
+  L18 Scaffold — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+
+[aws402_flutter] lib/screens/signin_screen.dart
+역할: 계정 입력을 확인하고 모바일 로그인 API 성공 후 홈으로 이동한다.
+  L13 SigninScreen — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L16 createState — 이 화면 인스턴스에 대응하는 State 객체를 만든다.
+  L27 getLogin — 기존 Login 조회 결과를 호출부에 반환한다.
+  L55 dispose — 화면/객체가 사라질 때 등록한 구독·리스너·타이머를 정리한다.
+  L63 build — 현재 상태를 위젯으로 구성한다. 네트워크 저장과 판정 계산은 컨트롤러/서비스에서 처리한다.
+  L68 Scaffold — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+
+[aws402_flutter] lib/screens/work_history_screen.dart
+역할: 기간별 근무 집계를 조회해 일자리·시간·상태 발생 횟수를 표시한다.
+  L20 WorkHistoryScreen — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L28 createState — 이 화면 인스턴스에 대응하는 State 객체를 만든다.
+  L41 initState — 화면 최초 생성 시 필요한 구독·조회·타이머를 초기화한다. dispose와 함께 확인한다.
+  L50 _load — 조회 조건으로 이력을 다시 읽는다. 늦게 온 이전 요청 결과가 현재 화면을 덮지 않게 한다.
+  L83 _elapsed — 경과 시간을 화면 표시 문자열로 바꾼다.
+  L92 _workCard — 한 근무 세션의 시간/상태 집계 카드를 구성한다.
+  L104 Card — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L216 build — 현재 상태를 위젯으로 구성한다. 네트워크 저장과 판정 계산은 컨트롤러/서비스에서 처리한다.
+
+[aws402_flutter] lib/utils/color_extension.dart
+역할: 화면 색상 변환을 돕는 공통 확장이다.
+  L8 toColor — 색상 문자열을 Flutter Color로 변환한다.
+  L14 Color — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+
+[aws402_flutter] lib/utils/loading_dialog.dart
+역할: 처리 중 표시와 닫기 동작을 공통화한다.
+  L10 show — 처리 중 다이얼로그를 표시한다.
+  L48 hide — 표시 중인 처리 다이얼로그를 닫는다.
+
+[aws402_flutter] lib/utils/toast.dart
+역할: 짧은 사용자 안내 메시지 표시를 공통화한다.
+  L11 showToast — 짧은 결과 안내 메시지를 표시한다.
+
+[aws402_flutter] lib/watch/watch_bridge_client.dart
+역할: 워치 SDK의 명령 콜백과 실제 연결/측정 이벤트를 Flutter에 전달한다. SDK 연결 명령 완료와 실제 연결 확인은 별개다.
+  L21 WatchBridgeClient — 필요한 의존성/콜백/초기값으로 WatchBridgeClient 객체를 구성한다.
+  L28 connection — 어댑터가 보고한 현재 연결 상태를 노출한다. 실제 장치 연결 이벤트가 원본이다.
+  L31 measurements — 새 센서 묶음의 스트림 계약이다. 기본 미설정 구현은 빈 스트림이다.
+  L35 reportConnection — SDK가 실제 연결 상태를 보고한 경우에만 연결 상태를 갱신하고 리스너에 알린다.
+  L42 reportMeasurement — 실제 연결된 동안 받은 센서 묶음만 측정 스트림에 전달한다.
+  L49 connect — 등록된 실제 SDK 연결 명령을 호출한다. 여기서 connected를 임의 설정하지 않는다.
+  L52 disconnect — 등록된 실제 SDK 연결 해제 명령을 호출한다.
+  L55 requestMeasurement — 등록된 SDK 측정 요청 명령을 호출하고 결과는 별도의 측정 이벤트로 받는다.
+  L58 dispose — 브리지 측정 스트림을 닫는다. SDK의 네이티브 구독 정리는 통신 담당자가 함께 구현한다.
+
+[aws402_flutter] lib/watch/watch_client.dart
+역할: 실제 워치 통신 구현이 따라야 할 계약이다. 기본 UnavailableWatchClient는 연결 성공/가상 측정값을 생성하지 않는다.
+  L15 connection — 실제 통신 구현이 제공할 연결 상태다. 미설정 구현은 disconnected를 반환한다.
+  L18 measurements — 새 센서 묶음의 스트림 계약이다. 기본 미설정 구현은 빈 스트림이다.
+  L21 connect — 워치 연결 명령 계약이다. 기본 미설정 구현은 연결 성공을 만들지 않는다.
+  L24 disconnect — 워치 연결 해제 명령 계약이다. 미설정 구현은 별도 장치 동작이 없다.
+  L27 requestMeasurement — 새 측정 요청 계약이다. 미설정 구현은 오류를 알리고 가상값을 반환하지 않는다.
+  L34 connection — 실제 통신 구현이 제공할 연결 상태다. 미설정 구현은 disconnected를 반환한다.
+  L37 measurements — 새 센서 묶음의 스트림 계약이다. 기본 미설정 구현은 빈 스트림이다.
+  L40 connect — 워치 연결 명령 계약이다. 기본 미설정 구현은 연결 성공을 만들지 않는다.
+  L43 disconnect — 워치 연결 해제 명령 계약이다. 미설정 구현은 별도 장치 동작이 없다.
+  L46 requestMeasurement — 새 측정 요청 계약이다. 미설정 구현은 오류를 알리고 가상값을 반환하지 않는다.
+
+[aws402_flutter] lib/watch/watch_health_controller.dart
+역할: 신규 워치 이벤트 검사 → GPS 포함 HTTP 전송 → 저장 확인 → WorkState 갱신을 조정한다. 실패/전송 중 샘플은 재전송 큐에 쌓지 않는다.
+  L36 WatchHealthController — 수신 스트림과 연결 리스너를 구독한다. 주입받은 상태를 홈/측정 화면이 공유하며 dispose에서 해제한다.
+  L42 Function — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L70 busy — 최초 수신 대기 또는 HTTP 저장 중인지 반환해 요청/근무 시작 중복을 막는다.
+  L73 connection — 어댑터가 보고한 현재 연결 상태를 노출한다. 실제 장치 연결 이벤트가 원본이다.
+  L76 _connectionChanged — 연결 이벤트가 달라졌을 때 이전 최초 측정 완료 상태와 진행 중 응답의 유효성을 초기화한다.
+  L88 _invalidate — 세대 번호를 올려 이전 비동기 응답을 무효화하고 이번 연결/근무의 측정 기준 시각을 갱신한다.
+  L100 resetForNextWork — 워치 연결은 유지하면서 다음 근무의 최초 측정 완료 조건을 초기화한다.
+  L106 connect — 실제 어댑터에 연결을 요청한다. 성공 상태는 어댑터 이벤트로만 반영한다.
+  L118 disconnect — 실제 연결 해제를 요청하고 명령 실패를 사용자 메시지로 표시한다.
+  L130 requestMeasurement — 중복 요청을 막고 요청 이후의 새 샘플을 기다린다. 90초 대기 타이머는 측정값 생성용이 아니다.
+  L156 _finishWaiting — 최초 측정 대기 타이머와 대기 플래그를 함께 정리한다.
+  L163 _receive — 신규·완전·시간 순서가 맞는 샘플만 전송한다. saved/판정/ID/시각을 확인한 DB 저장 수치만 화면에 반영한다.
+  L251 dispose — 타이머·연결 리스너·측정 구독을 정리하고 늦게 도착한 저장 응답을 무효화한다.
+
+[aws402_flutter] lib/widgets/health_metric_card.dart
+역할: 근무 전·중 공통 건강 항목을 표시한다. 아이콘/제목과 수치/상태 묶음을 중앙에 배치하며 판정은 계산하지 않는다.
+  L15 HealthMetricCard — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L26 build — 현재 상태를 위젯으로 구성한다. 네트워크 저장과 판정 계산은 컨트롤러/서비스에서 처리한다.
+  L28 Container — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+
+[aws402_flutter] lib/widgets/history_alert_counts.dart
+역할: 서버가 집계한 주의·경고·위험 발생 건수를 공통 모양으로 표시한다.
+  L14 HistoryAlertCounts — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L23 build — 현재 상태를 위젯으로 구성한다. 네트워크 저장과 판정 계산은 컨트롤러/서비스에서 처리한다.
+  L38 Row — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L71 _count — 서버에서 받은 한 등급의 발생 건수를 표시한다.
+
+[aws402_flutter] lib/widgets/history_range_filter.dart
+역할: 이력 조회 기간 입력과 검색 콜백을 제공한다.
+  L17 HistoryRangeFilter — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L28 _pick — 허용 범위 안에서 조회 날짜를 선택해 부모 화면 콜백에 전달한다.
+  L52 _periodHint — 현재 조회 기간의 안내 문구를 구성한다.
+  L62 build — 현재 상태를 위젯으로 구성한다. 네트워크 저장과 판정 계산은 컨트롤러/서비스에서 처리한다.
+  L102 _dateField — 조회 날짜 선택 입력을 구성한다.
+
+[aws402_flutter] lib/widgets/main_widget.dart
+역할: 근무 대기 화면에서 안내와 저장된 최초 건강 측정 카드를 표시한다.
+  L32 MainWidget — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L52 _healthCard — 공통 HealthMetricCard에 항목 이름·저장 수치·서버 판정 표시를 전달한다.
+  L64 HealthMetricCard — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L78 build — 현재 상태를 위젯으로 구성한다. 네트워크 저장과 판정 계산은 컨트롤러/서비스에서 처리한다.
+  L91 Column — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+
+[aws402_flutter] lib/widgets/topbar_widget.dart
+역할: HomeDashboard와 근무 상태를 받아 사용자·진행 일자리·기상을 표시한다.
+  L21 TopbarWidget — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L31 build — 현재 상태를 위젯으로 구성한다. 네트워크 저장과 판정 계산은 컨트롤러/서비스에서 처리한다.
+  L60 Container — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+
+[aws402_flutter] lib/widgets/weather_summary_widget.dart
+역할: 홈 기상 관측값의 요약을 표시한다. 표시 자체에서 외부 기상 API를 호출하지 않는다.
+  L17 WeatherSummaryWidget — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L26 _metric — 기상 항목의 이름과 표시 수치를 배치한다.
+  L28 Expanded — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L66 build — 현재 상태를 위젯으로 구성한다. 네트워크 저장과 판정 계산은 컨트롤러/서비스에서 처리한다.
+  L70 Container — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+
+[aws402_flutter] lib/widgets/work_widget.dart
+역할: 근무 중 건강 카드와 근무/휴식 버튼을 조합한다. 측정값·판정의 원본은 전달받은 WorkState다.
+  L37 WorkWidget — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L61 _healthCard — 공통 HealthMetricCard에 항목 이름·저장 수치·서버 판정 표시를 전달한다.
+  L67 HealthMetricCard — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L85 _weatherBanner — 저장된 기상 관측 요약과 안내를 표시한다.
+  L88 WeatherSummaryWidget — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L97 _actionButton — 근무 화면 동작 버튼과 전달된 콜백을 연결한다.
+  L161 _buildBody — 화면 크기에 맞춰 근무 카드와 버튼 영역을 구성한다.
+  L171 Column — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L419 build — 현재 상태를 위젯으로 구성한다. 네트워크 저장과 판정 계산은 컨트롤러/서비스에서 처리한다.
+  L421 LayoutBuilder — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/config/JapAuditingConfig.java
+역할: 기존 JPA 생성/수정 시각 자동 기록 설정을 활성화한다.
+  필드/매핑/설정 중심 소스입니다. Lombok 접근자는 컴파일 시 생성됩니다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/controller/JobController.java
+역할: 기존 웹 일자리 목록 조회 요청을 JobService로 전달한다.
+  L26 getJobNoticeList — 기존 일자리 목록을 조회해 호출부에 반환한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/controller/UserController.java
+역할: 기존 웹 사용자·관리자 로그인과 사용자 상세 조회의 HTTP 입구다. 모바일 /api/mobile 경로와 구분한다.
+  L29 selectUserExist — 기존 웹 로그인 입력으로 계정을 조회하고 결과 상태와 프로필을 반환한다.
+  L44 getUserHealth — 지정 사용자의 기존 HEALTH 기록을 조회한다.
+  L58 getUserGps — 지정 사용자의 기존 GPS 기록을 조회한다.
+  L72 getUserDiseases — 지정 사용자의 질병 정보를 조회한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/data/entity/AdminEntity.java
+역할: 기존 admin 테이블의 JPA 매핑이다. 필드/관계/컬럼 정의를 유지하며 Lombok 생성 접근자는 소스에 직접 선언되지 않는다.
+  필드/매핑/설정 중심 소스입니다. Lombok 접근자는 컴파일 시 생성됩니다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/data/entity/AllocationListEntity.java
+역할: 기존 allocation_list 테이블의 JPA 매핑이다. 필드/관계/컬럼 정의를 유지하며 Lombok 생성 접근자는 소스에 직접 선언되지 않는다.
+  필드/매핑/설정 중심 소스입니다. Lombok 접근자는 컴파일 시 생성됩니다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/data/entity/BaseEntity.java
+역할: 기존 ERD의 JPA 매핑이다. 필드/관계/컬럼 정의를 유지하며 Lombok 생성 접근자는 소스에 직접 선언되지 않는다.
+  필드/매핑/설정 중심 소스입니다. Lombok 접근자는 컴파일 시 생성됩니다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/data/entity/DiseasesListEntity.java
+역할: 기존 diseases_list 테이블의 JPA 매핑이다. 필드/관계/컬럼 정의를 유지하며 Lombok 생성 접근자는 소스에 직접 선언되지 않는다.
+  필드/매핑/설정 중심 소스입니다. Lombok 접근자는 컴파일 시 생성됩니다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/data/entity/GpsEntity.java
+역할: 기존 gps_list 테이블의 JPA 매핑이다. 필드/관계/컬럼 정의를 유지하며 Lombok 생성 접근자는 소스에 직접 선언되지 않는다.
+  필드/매핑/설정 중심 소스입니다. Lombok 접근자는 컴파일 시 생성됩니다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/data/entity/GuardianEntity.java
+역할: 기존 guardian 테이블의 JPA 매핑이다. 필드/관계/컬럼 정의를 유지하며 Lombok 생성 접근자는 소스에 직접 선언되지 않는다.
+  필드/매핑/설정 중심 소스입니다. Lombok 접근자는 컴파일 시 생성됩니다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/data/entity/HealthBaseEntity.java
+역할: 기존 health_base 테이블의 JPA 매핑이다. 필드/관계/컬럼 정의를 유지하며 Lombok 생성 접근자는 소스에 직접 선언되지 않는다.
+  필드/매핑/설정 중심 소스입니다. Lombok 접근자는 컴파일 시 생성됩니다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/data/entity/HealthEntity.java
+역할: 기존 health 테이블의 JPA 매핑이다. 필드/관계/컬럼 정의를 유지하며 Lombok 생성 접근자는 소스에 직접 선언되지 않는다.
+  필드/매핑/설정 중심 소스입니다. Lombok 접근자는 컴파일 시 생성됩니다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/data/entity/JobNoticeEntity.java
+역할: 기존 job_notice 테이블의 JPA 매핑이다. 필드/관계/컬럼 정의를 유지하며 Lombok 생성 접근자는 소스에 직접 선언되지 않는다.
+  필드/매핑/설정 중심 소스입니다. Lombok 접근자는 컴파일 시 생성됩니다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/data/entity/PicEntity.java
+역할: 기존 pic 테이블의 JPA 매핑이다. 필드/관계/컬럼 정의를 유지하며 Lombok 생성 접근자는 소스에 직접 선언되지 않는다.
+  필드/매핑/설정 중심 소스입니다. Lombok 접근자는 컴파일 시 생성됩니다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/data/entity/TypeEntity.java
+역할: 기존 type 테이블의 JPA 매핑이다. 필드/관계/컬럼 정의를 유지하며 Lombok 생성 접근자는 소스에 직접 선언되지 않는다.
+  필드/매핑/설정 중심 소스입니다. Lombok 접근자는 컴파일 시 생성됩니다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/data/entity/UserEntity.java
+역할: 기존 user 테이블의 JPA 매핑이다. 필드/관계/컬럼 정의를 유지하며 Lombok 생성 접근자는 소스에 직접 선언되지 않는다.
+  필드/매핑/설정 중심 소스입니다. Lombok 접근자는 컴파일 시 생성됩니다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/data/entity/WeatherEntity.java
+역할: 기존 weather 테이블의 JPA 매핑이다. 필드/관계/컬럼 정의를 유지하며 Lombok 생성 접근자는 소스에 직접 선언되지 않는다.
+  필드/매핑/설정 중심 소스입니다. Lombok 접근자는 컴파일 시 생성됩니다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/data/repository/AdminRepository.java
+역할: 기존 Admin Entity의 JPA 조회 계약이다. 메서드 이름 기반 쿼리와 명시 쿼리를 통해 웹 서비스가 DB를 조회한다.
+  L11 findByIdAndPwd — 메서드 이름의 조건으로 기존 Entity를 조회한다. 조회 대상과 정렬 조건을 호출 서비스와 함께 확인한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/data/repository/DiseasesListRepository.java
+역할: 기존 DiseasesList Entity의 JPA 조회 계약이다. 메서드 이름 기반 쿼리와 명시 쿼리를 통해 웹 서비스가 DB를 조회한다.
+  L12 findByUserIdx — 메서드 이름의 조건으로 기존 Entity를 조회한다. 조회 대상과 정렬 조건을 호출 서비스와 함께 확인한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/data/repository/GpsRepository.java
+역할: 기존 Gps Entity의 JPA 조회 계약이다. 메서드 이름 기반 쿼리와 명시 쿼리를 통해 웹 서비스가 DB를 조회한다.
+  L12 findByUserIdxOrderByIdxDesc — 메서드 이름의 조건으로 기존 Entity를 조회한다. 조회 대상과 정렬 조건을 호출 서비스와 함께 확인한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/data/repository/GuardianRepository.java
+역할: 기존 Guardian Entity의 JPA 조회 계약이다. 메서드 이름 기반 쿼리와 명시 쿼리를 통해 웹 서비스가 DB를 조회한다.
+  L12 findAllByUserIdx — 메서드 이름의 조건으로 기존 Entity를 조회한다. 조회 대상과 정렬 조건을 호출 서비스와 함께 확인한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/data/repository/HealthRepository.java
+역할: 기존 Health Entity의 JPA 조회 계약이다. 메서드 이름 기반 쿼리와 명시 쿼리를 통해 웹 서비스가 DB를 조회한다.
+  L12 findAllByUserIdxOrderByIdxDesc — 메서드 이름의 조건으로 기존 Entity를 조회한다. 조회 대상과 정렬 조건을 호출 서비스와 함께 확인한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/data/repository/JobNoticeRepository.java
+역할: 기존 JobNotice Entity의 JPA 조회 계약이다. 메서드 이름 기반 쿼리와 명시 쿼리를 통해 웹 서비스가 DB를 조회한다.
+  L13 findAllByRecrEndDtGreaterThanEqualAndRecrStartDtLessThanEqual — 메서드 이름의 조건으로 기존 Entity를 조회한다. 조회 대상과 정렬 조건을 호출 서비스와 함께 확인한다.
+  L17 findAllByOrderByIdx — 메서드 이름의 조건으로 기존 Entity를 조회한다. 조회 대상과 정렬 조건을 호출 서비스와 함께 확인한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/data/repository/PicRepository.java
+역할: 기존 Pic Entity의 JPA 조회 계약이다. 메서드 이름 기반 쿼리와 명시 쿼리를 통해 웹 서비스가 DB를 조회한다.
+  L12 findAllByUserIdx — 메서드 이름의 조건으로 기존 Entity를 조회한다. 조회 대상과 정렬 조건을 호출 서비스와 함께 확인한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/data/repository/UserRepository.java
+역할: 기존 User Entity의 JPA 조회 계약이다. 메서드 이름 기반 쿼리와 명시 쿼리를 통해 웹 서비스가 DB를 조회한다.
+  L12 findAllByIdAndPwd — 메서드 이름의 조건으로 기존 Entity를 조회한다. 조회 대상과 정렬 조건을 호출 서비스와 함께 확인한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/HealthGuardServerApplication.java
+역할: Spring Boot 진입점이다. 컴포넌트 등록과 HTTP 서버 시작을 수행한다.
+  L13 main — SpringApplication을 실행해 구성된 프로필과 설정으로 서버를 시작한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/controller/MobileConnectionController.java
+역할: 서버 응답 및 DB 읽기 연결 상태를 검사하는 진단 API다.
+  L25 ping — HTTP 서버 응답 상태를 확인한다.
+  L31 dbCheck — DB 읽기 진단 결과에 맞는 HTTP 응답을 반환한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/controller/MobileDemoController.java
+역할: mobile-demo 프로필에서만 등록하는 개발용 샘플 조회다. prod와 함께 활성화되면 등록되지 않는다.
+  L21 MobileDemoController — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L28 measurement — 개발 프로필에서만 DB 기준의 가상 샘플을 조회한다. 이 응답은 실측 저장 성공이 아니다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/controller/MobileFeatureController.java
+역할: 인증·측정 저장·근무 이벤트·개별 이력 API 입구다. 사용자 번호는 요청 본문 대신 모바일 세션에서 결정한다.
+  L27 MobileFeatureController — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L36 login — 로그인 본문을 인증 서비스에 전달하고 필요한 사용자 필드와 토큰만 응답한다.
+  L42 me — 헤더 토큰으로 로그인 사용자 확인을 요청한다.
+  L48 logout — 저장된 세션을 폐기한다.
+  L56 measure — 세션 사용자로 측정을 저장한다. 요청 본문의 임의 사용자 번호는 신뢰하지 않는다.
+  L64 latest — 인증 사용자의 최신 HEALTH와 사용 가능한 최근 메모리 정보를 조회한다.
+  L70 workEvent — 근무 이벤트를 서비스에 전달한다. 전환 순서와 시작 조건은 서비스에서 검사한다.
+  L78 workStatus — 진행 중 배정을 기준으로 서버 근무 단계를 조회한다.
+  L84 workHistory — 요청 날짜의 사용자 근무 이벤트를 조회한다.
+  L92 healthHistory — 요청 날짜의 저장 건강값을 서버 수신 시각 기준으로 조회한다.
+  L100 alertHistory — 요청 날짜에 저장된 상태 변경 알림을 조회한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/controller/MobileHistorySummaryController.java
+역할: 인증 사용자의 기간별 근무 요약과 상태 발생 집계를 조회한다.
+  L26 MobileHistorySummaryController — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L34 work — 세션 사용자와 조회 기간을 검증 경로로 전달해 근무 요약을 응답한다.
+  L43 status — 세션 사용자의 기간별 상태 발생 집계를 응답한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/controller/MobileHomeController.java
+역할: 세션 사용자에 대한 홈 대시보드 조회를 MobileHomeService에 위임한다.
+  L23 MobileHomeController — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L30 home — 헤더 세션을 확인하고 사용자 홈 조회를 위임한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/dto/MobileRequests.java
+역할: HTTP 입력 DTO를 모은다. 측정 본문에는 ID·시각·세 수치와 선택 좌표가 있고 steps/강제 등급은 없다.
+  L12 MobileRequests — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L15 Login — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L19 Measurement — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L30 WorkEvent — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/entity/AdminTimeEntity.java
+역할: 기존 admin_time 테이블의 JPA 매핑이다. 필드/관계/컬럼 정의를 유지하며 Lombok 생성 접근자는 소스에 직접 선언되지 않는다.
+  필드/매핑/설정 중심 소스입니다. Lombok 접근자는 컴파일 시 생성됩니다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/entity/AlertActionListEntity.java
+역할: 기존 alert_action_list 테이블의 JPA 매핑이다. 필드/관계/컬럼 정의를 유지하며 Lombok 생성 접근자는 소스에 직접 선언되지 않는다.
+  필드/매핑/설정 중심 소스입니다. Lombok 접근자는 컴파일 시 생성됩니다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/entity/AlertListEntity.java
+역할: 기존 alert_list 테이블의 JPA 매핑이다. 필드/관계/컬럼 정의를 유지하며 Lombok 생성 접근자는 소스에 직접 선언되지 않는다.
+  필드/매핑/설정 중심 소스입니다. Lombok 접근자는 컴파일 시 생성됩니다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/entity/WorkListEntity.java
+역할: 기존 work_list 테이블의 JPA 매핑이다. 필드/관계/컬럼 정의를 유지하며 Lombok 생성 접근자는 소스에 직접 선언되지 않는다.
+  필드/매핑/설정 중심 소스입니다. Lombok 접근자는 컴파일 시 생성됩니다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/model/MobileMeasurementReceipt.java
+역할: JPA Entity가 아닌 최근 요청 메모리 객체다. HEALTH 저장 ID와 수신 당시 메타데이터를 연결하며 DB 테이블을 생성하지 않는다.
+  L29 MobileMeasurementReceipt — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L51 getUserId — 최근 요청 객체의 세션 사용자 번호를 반환한다.
+  L56 getHealthId — 최근 요청 객체의 기존 HEALTH 저장 ID를 반환한다.
+  L61 getSampleId — 최근 요청 객체의 최근 측정 ID를 반환한다.
+  L66 getMeasuredAt — 최근 요청 객체의 실제 측정 시각(비영속)를 반환한다.
+  L71 getReceivedAt — 최근 요청 객체의 서버 수신 시각를 반환한다.
+  L76 getRequestHash — 최근 요청 객체의 중복 비교용 해시를 반환한다.
+  L81 getStatus — 최근 요청 객체의 수신 당시 판정(비영속)를 반환한다.
+  L86 getPreviousStatus — 최근 요청 객체의 이전 판정(비영속)를 반환한다.
+  L91 getAlertId — 최근 요청 객체의 기존 ALERT_LIST 저장 ID를 반환한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/service/MobileActiveWorkService.java
+역할: 최신 배정 여부와 별개로 실제 진행 중인 근무 배정을 찾는다. 홈과 근무 상태 조회가 같은 기준을 사용한다.
+  L19 ActiveWork — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L24 find — 배정별 마지막 이벤트를 확인해 실제 진행 중인 근무를 찾는다. 최신 배정만 보는 방식으로 이전 근무를 잃지 않게 한다.
+  L46 fromRow — 마지막 근무 이벤트 행을 진행 배정 모델로 변환한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/service/MobileAuthService.java
+역할: USER 계정을 확인하고 서버 디스크에 12시간 세션을 보관한다.
+  L28 Session — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L32 login — USER의 기존 비밀번호 비교로 계정을 검증하고 12시간 세션을 발급한다. 암호 정책 자체는 이 작업에서 바꾸지 않았다.
+  L59 requireUser — 세션 존재와 만료를 검사해 사용자 번호를 반환한다. 요청자가 보낸 사용자 번호로 대체하지 않는다.
+  L69 me — 유효 세션의 사용자 번호/이름만 응답한다.
+  L75 logout — 해당 토큰의 저장된 세션을 폐기한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/service/MobileConnectionService.java
+역할: 최소 DB 읽기 쿼리로 접속 가능 여부를 검사한다.
+  L19 canReadDatabase — 진단용 읽기 쿼리 실행 성공 여부만 반환한다. 센서 저장 성공을 뜻하지 않는다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/service/MobileHistorySummaries.java
+역할: 조회한 이벤트를 근무 세션과 날짜별 알림 횟수로 집계하는 순수 계산 로직이다.
+  L20 MobileHistorySummaries — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L23 WorkEvent — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L27 AlertEvent — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L79 positiveMinutes — 음수 경과 시간을 0으로 제한해 분 단위 집계값을 만든다.
+  L85 workSummaries — 기존 근무 이벤트를 세션으로 묶어 근무/휴식 시간과 해당 알림을 집계한다.
+  L164 statusSummaries — 날짜별 N/W/D 알림 발생 건수와 상세 이벤트를 집계한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/service/MobileHistorySummaryService.java
+역할: 조회 기간을 검증하고 기존 근무/배정/알림 데이터를 집계기에 전달한다.
+  L27 validate — 기간 시작/종료와 허용 범위를 검사해 잘못된 조회를 막는다.
+  L38 timestamp — JDBC 시각 타입을 집계기의 LocalDateTime으로 통일한다.
+  L47 work — 배정·근무 이벤트·알림을 읽어 근무 세션 집계기로 전달한다.
+  L79 status — 기간 내 알림을 읽어 날짜별 건수/상세 시각 집계를 반환한다.
+  L87 alertEvents — 사용자의 기간 내 ALERT_LIST를 집계용 이벤트로 변환한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/service/MobileHomeService.java
+역할: 사용자·실제 진행 일자리·저장된 기상 관측값을 조회해 홈 응답을 구성한다.
+  L29 MobileHomeService — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L37 fetch — 세션 사용자 이름과 실제 진행 일자리, 저장된 기상 정보를 조합한다.
+  L69 loadWeather — WEATHER에서 기상 관측값을 읽는다. 워치 건강 수치와 별개다.
+  L145 toDecimal — JDBC 기상 수치를 소수 모델로 통일한다.
+  L151 advice — 조회한 기상 조건을 홈의 안전 안내 문구로 변환한다.
+  L164 condition — 기상청 강수 형태 코드를 표시 문구로 변환한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/service/MobileMeasurementPolicy.java
+역할: ID/센서 형식·좌표·신선도·시간대·온도 정밀도를 검증한다. 전송 허용 범위와 건강 판정 기준은 구분한다.
+  L30 MobileMeasurementPolicy — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L42 MobileMeasurementPolicy — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L54 Reading — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L66 validate — ID·시간대·세 수치·좌표 쌍을 검사하고 온도 소수 둘째 자리와 비교용 해시를 만든다. 건강 등급은 계산하지 않는다.
+  L121 requireFresh — 기본 120초 과거/5초 미래 범위를 검사한다. 워치·휴대폰·서버 시각이 맞아야 한다.
+  L129 receiptRetention — 메모리 보관 시간을 측정 허용 나이 + 미래 허용 + 60초로 계산한다.
+  L134 now — DB 기준 시간대의 현재 시각을 마이크로초 정밀도로 반환한다.
+  L139 local — UTC Instant를 기존 DB 시간대의 로컬 시각으로 바꾼다.
+  L144 instant — DB 로컬 시각을 설정된 시간대에 맞춰 UTC Instant로 변환한다.
+  L149 iso — DB 시각을 시간대가 명확한 UTC ISO 문자열로 응답한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/service/MobileMeasurementReceipts.java
+역할: 최근 측정의 ID·시각·판정을 제한된 메모리에만 기억한다. 재시작·만료·용량 초과·다중 인스턴스 간 영구 중복 방지는 보장하지 않는다.
+  L18 Key — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L26 MobileMeasurementReceipts — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L31 purge — 보관 시간이 지난 측정/정밀 종료 시각을 메모리에서 제거한다. DB 이력은 변경하지 않는다.
+  L38 find — 같은 사용자와 sampleId의 최근 메모리 항목을 찾는다.
+  L44 latest — 사용자의 최근 메타데이터를 HEALTH ID 순서로 찾는다.
+  L53 remember — DB 잠금 해제 전에 최근 수신 정보를 등록하고 트랜잭션 롤백 시 제거한다. 최대 보관 건수를 제한한다.
+  L71 forget — 동일 객체가 아직 등록돼 있을 때만 제거해 더 새로운 항목을 잘못 지우지 않는다.
+  L76 lastWorkEnd — 초 단위 DB 시각의 경계 보완용 정밀 근무 종료 시각을 찾는다.
+  L82 rememberWorkEnd — 근무 종료 정밀 시각을 메모리에 기록한다. DB 종료 저장이 롤백되면 이전 상태로 되돌린다.
+  L98 rollbackEnd — 실패한 트랜잭션이 기록한 종료 시각만 되돌린다.
+  L103 clear — 최근 요청/종료 시각 메모리를 비운다. DB는 수정하지 않으며 테스트에서 재시작 상황을 재현할 때 사용한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/service/MobileMeasurementService.java
+역할: 기존 HEALTH/GPS_LIST/ALERT_LIST에 측정을 원자적으로 저장하고 실제 DB 저장 수치를 읽어 응답한다. 새 테이블은 사용하지 않는다.
+  L29 MobileMeasurementService — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L39 receive — 검증 → WS 행 잠금 → 최근 중복/역순 검사 → DB 기준 판정 → HEALTH/선택 GPS/상태 변경 알림 저장 → 저장 수치 응답을 한 트랜잭션에서 처리한다.
+  L112 latestReceipt — 기존 테이블이 아니라 제한된 메모리에서 사용자의 최근 수신 메타데이터를 찾는다.
+  L118 latest — 최신 HEALTH는 DB에서 읽는다. 메타데이터가 없으면 ID/실제 시각/당시 판정을 null로 반환해 영구 저장을 가장하지 않는다.
+  L155 snapshot — HEALTH의 실제 저장 수치를 다시 읽어 ACK를 만든다. sampleId/실제 시각/판정은 비영속 메모리 정보다.
+  L185 legacyStatus — 최근 메모리 정보가 없으면 직전 HEALTH 수치를 현재 DB 기준으로 재판정한다. 과거 당시 판정 복원은 아니다.
+  L203 lockMobileWrites — 기존 TYPE.WS 행을 잠가 모바일 수동 PK 발번과 근무 쓰기를 직렬화한다. 다른 웹 쓰기 경로의 공통 발번 정책은 별도 확인이 필요하다.
+  L213 nextId — 허용된 기존 테이블에서 MAX(IDX)+1을 구한다. 반드시 WS 잠금 트랜잭션 안에서 호출한다.
+  L223 healthHistory — 기존 HEALTH만 조회한다. 호환 measuredAt 필드도 INSERT_TIME이며 timestampKind로 서버 수신 시각임을 명시한다.
+  L254 alertHistory — ALERT_LIST에서 사용자의 상태 변경 기록을 조회한다. 측정 횟수와 알림 건수는 같지 않다.
+  L281 toTime — JDBC/Hibernate가 반환한 Timestamp 또는 LocalDateTime을 DB 로컬 시각으로 통일한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/service/MobileRiskRules.java
+역할: DB에서 읽은 세 센서 경계값을 비교하는 독립 판정기다. 위험 > 경고 > 주의 순서이며 낙상은 별도 응급 신호다.
+  L12 MobileRiskRules — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L15 Range — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L34 Reading — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L37 classify — 낙상 신호를 먼저 확인하고 위험→경고→주의 순서로 세 센서 중 하나라도 해당하면 그 등급을 반환한다.
+  L47 matches — 해당 등급의 범위에 심박·온도·산소포화도 중 하나라도 포함되는지 검사한다.
+  L54 require — 필수 센서 기준이 없으면 명확히 실패한다.
+  L63 sample — 개발 검증용 수치를 DB 경계값에서 만든다. 실제 워치 수신 시 이 함수를 호출하지 않는다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/service/MobileRiskService.java
+역할: 사용자별 HEALTH_BASE 조회와 피부온도 단위 변환을 거쳐 서버 등급을 계산한다.
+  L23 MobileRiskService — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L32 classify — 현재 HEALTH_BASE와 변환된 온도 단위로 최종 등급을 계산한다.
+  L42 demoSample — 개발 전용 API에서만 사용하는 가상 샘플 생성이다. 실측 POST 입력 경로와 구분한다.
+  L66 typeCode — 서버 등급을 기존 ALERT_LIST.TYPE의 N/W/D/E 코드로 변환한다.
+  L77 gradeFromCode — 기존 알림 코드를 앱 등급 문자열로 변환한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/service/MobileTemperatureUnit.java
+역할: 섭씨 온도와 기존 정수 HEALTH_BASE의 비교 단위를 변환한다. 기본 배율은 100이다.
+  L15 MobileTemperatureUnit — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L21 toRuleValue — 섭씨를 기존 정수 판정 단위로 변환한다. 기본 36.57℃는 3657이다.
+  L29 toCelsius — 정수 기준값을 섭씨로 역변환한다. 개발 샘플 생성 등에서 사용한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/service/MobileThresholdService.java
+역할: USER의 성별/생년월일과 마지막 근무 이벤트로 HEALTH_BASE 세 항목을 선택한다. 누락·중복 기준은 오류로 처리한다.
+  L27 rulesFor — 사용자 연령대·성별과 마지막 근무 이벤트(RS만 RESTING)에 맞는 BPM/TMP/SPO2 기준을 읽는다. 누락/중복은 409로 실패한다.
+  L92 number — NULL이 아닌 수치 기준만 정수로 읽는다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/mobile/service/MobileWorkService.java
+역할: 근무 전환 순서와 최근 정상 측정을 확인하고 기존 WORK_LIST에 WS/RS/RR/WE를 저장한다.
+  L29 MobileWorkService — 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
+  L41 latestAllocation — 새 근무를 배정할 최신 사용자 배정을 찾는다. 진행 중 근무 복원과 구분한다.
+  L54 currentEvent — 지정 배정의 마지막 근무 이벤트 코드를 조회하는 보조 함수다.
+  L65 phase — 기존 근무 이벤트 코드를 앱 READY/WORKING/RESTING 단계로 변환한다.
+  L75 changeWork — 현재 단계와 배정을 검증해 WS/RS/RR/WE를 저장한다. START는 최근 정상 측정을 추가 검증한다.
+  L133 verifyFreshNormalMeasurement — 최신 HEALTH와 메모리 수신 정보가 일치하고 신선한 NORMAL이며 마지막 종료 이후 측정인지 검사한다. 메모리 소실 시 새 측정이 필요하다.
+  L181 status — 실제 진행 근무가 있으면 해당 배정 상태를 반환하고 없으면 대기 상태와 배정 유무를 응답한다.
+  L206 history — 기존 WORK_LIST와 ALLOCATION_LIST에서 날짜별 근무 이벤트와 표시 문구를 만든다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/service/JobService.java
+역할: 기존 웹 일자리 목록을 JobNoticeRepository로 조회한다.
+  L18 getJobNoticeList — 기존 일자리 목록을 조회해 호출부에 반환한다.
+
+[health-guard-server] src/main/java/bitc/aws402/healthguardserver/service/UserService.java
+역할: 기존 웹에서 사용자 건강·GPS·질병·담당자·보호자와 로그인 계정을 Repository로 조회한다.
+  L24 getUserExist — 기존 웹 로그인용 아이디/비밀번호로 사용자 계정을 조회한다.
+  L30 getUserHealth — 지정 사용자의 기존 HEALTH 기록을 조회한다.
+  L36 getUserGps — 지정 사용자의 기존 GPS 기록을 조회한다.
+  L41 getUserDiseases — 지정 사용자의 질병 정보를 조회한다.
+  L46 getUserPic — 지정 사용자의 담당자 정보를 조회한다.
+  L51 getUserGuardian — 지정 사용자의 보호자 정보를 조회한다.
+  L56 getAdminExist — 기존 관리자 계정을 조회한다.
+

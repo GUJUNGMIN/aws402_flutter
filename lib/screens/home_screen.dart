@@ -254,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_changingWork || _signingOut) return;
     _changingWork = true;
     try {
-      if (_work.isResting) {
+      if (_work.isResting || _work.isStopped) {
         await MobileApi.instance.workEvent('RESUME');
         if (mounted) {
           setState(() {
@@ -363,8 +363,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// [인수인계] 서버의 상태 변경 판정에 해당하는 알림 화면을 연다.
   Future<void> _openAlert(String type, {HealthMeasurement? measurement}) async {
-    // 구정민 : 수정 - 라우트와 응급 화면은 보존하면서 일반 UI의 응급 진입만 차단한다.
+    // 서버가 응급으로 판정한 측정도 동일한 알림 경로로 표시한다.
     if (!Step2FeatureFlags.showEmergency && type == 'emergency') return;
+    // 이전 작업 완료 안내가 경고·긴급 조치 버튼을 가리지 않도록 정리한다.
+    ScaffoldMessenger.of(context).clearSnackBars();
     final result = await Navigator.pushNamed<String>(
       context,
       AppRoutes.alert,
@@ -429,6 +431,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   workStartedAt: _work.startedAt,
                   restStartedAt: _work.restStartedAt,
                   isResting: _work.isResting,
+                  isStopped: _work.isStopped,
                   watchConnected: _work.watchConnected,
                   onWatchStatusPressed: _openHealthCheck,
                   onButtonPressed: _endWork,

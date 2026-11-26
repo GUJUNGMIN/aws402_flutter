@@ -19,6 +19,7 @@ class WorkWidget extends StatelessWidget {
   final DateTime? workStartedAt;
   final DateTime? restStartedAt;
   final bool isResting;
+  final bool isStopped;
   final bool watchConnected;
   final VoidCallback? onWatchStatusPressed;
 
@@ -44,6 +45,7 @@ class WorkWidget extends StatelessWidget {
     this.workStartedAt,
     this.restStartedAt,
     this.isResting = false,
+    this.isStopped = false,
     this.watchConnected = false,
     this.onWatchStatusPressed,
     this.latestBpm,
@@ -181,11 +183,11 @@ class WorkWidget extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: isResting
+              color: isResting || isStopped
                   ? const Color(0xFFFFF0D7)
                   : const Color(0xFFE4F6EC),
               border: Border.all(
-                color: isResting
+                color: isResting || isStopped
                     ? const Color(0xFFDE9D3F)
                     : const Color(0xFF49A577),
               ),
@@ -194,19 +196,27 @@ class WorkWidget extends StatelessWidget {
             child: Row(
               children: [
                 Icon(
-                  isResting ? Icons.hotel : Icons.check_circle,
-                  color: isResting
+                  isStopped
+                      ? Icons.pause_circle
+                      : isResting
+                      ? Icons.hotel
+                      : Icons.check_circle,
+                  color: isResting || isStopped
                       ? const Color(0xFFAE6400)
                       : const Color(0xFF15804A),
                   size: 21,
                 ),
                 const SizedBox(width: 7),
                 Text(
-                  isResting ? '휴식 중' : '근무 중',
+                  isStopped
+                      ? '작업 중지'
+                      : isResting
+                      ? '휴식 중'
+                      : '근무 중',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isResting
+                    color: isResting || isStopped
                         ? const Color(0xFF945500)
                         : const Color(0xFF12673B),
                   ),
@@ -220,7 +230,9 @@ class WorkWidget extends StatelessWidget {
                   ),
                   initialData: DateTime.now(),
                   builder: (context, snapshot) {
-                    final start = isResting ? restStartedAt : workStartedAt;
+                    final start = isResting || isStopped
+                        ? restStartedAt
+                        : workStartedAt;
                     if (start == null) {
                       return const Text(
                         '임시 근무',
@@ -234,7 +246,11 @@ class WorkWidget extends StatelessWidget {
                         .difference(start);
                     final minutes = elapsed.isNegative ? 0 : elapsed.inMinutes;
                     return Text(
-                      '${isResting ? '휴식' : '경과'} ${minutes ~/ 60}시간 ${minutes % 60}분',
+                      '${isStopped
+                          ? '중지'
+                          : isResting
+                          ? '휴식'
+                          : '경과'} ${minutes ~/ 60}시간 ${minutes % 60}분',
                       style: const TextStyle(
                         fontSize: 13,
                         color: Color(0xFF355B48),
@@ -369,7 +385,7 @@ class WorkWidget extends StatelessWidget {
             children: [
               Expanded(
                 child: _actionButton(
-                  label: isResting ? '근무 재개' : l10n.work_rest,
+                  label: isResting || isStopped ? '근무 재개' : l10n.work_rest,
                   onPressed: onRestPressed,
                   filled: true,
                 ),

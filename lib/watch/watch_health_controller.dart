@@ -3,6 +3,8 @@
 
 import 'dart:async';
 
+import '../mobile/health_status.dart';
+
 import 'package:flutter/foundation.dart';
 
 import '../config/step2_feature_flags.dart';
@@ -198,7 +200,9 @@ class WatchHealthController extends ChangeNotifier {
     try {
       final response = await api.sendMeasurement(sample);
       if (_disposed || generation != _generation) return;
-      final grade = response['status'];
+      final grade = HealthStatus.normalize(
+        response['statusCode'] ?? response['status'],
+      );
       if (response['saved'] != true ||
           !const [
             'NORMAL',
@@ -224,7 +228,7 @@ class WatchHealthController extends ChangeNotifier {
         stored.temperature,
         stored.spo2,
         sample.fallDetected,
-        grade as String,
+        grade,
       );
       message = '서버 저장 완료 · 서버 판정: $grade';
       if (!Step2FeatureFlags.showEmergency &&
@@ -233,7 +237,7 @@ class WatchHealthController extends ChangeNotifier {
         state.serverMessage = message;
       } else if (response['statusChanged'] == true &&
           grade != 'NORMAL' &&
-          state.phase != WorkPhase.ready) {
+          (state.phase != WorkPhase.ready || grade == 'EMERGENCY')) {
         onStatusChanged?.call(stored, grade);
       }
     } catch (error) {

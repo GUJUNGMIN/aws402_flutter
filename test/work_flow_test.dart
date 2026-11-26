@@ -5,6 +5,34 @@ void saveNormal(WorkState state) =>
     state.applyServerMeasurement(85, 36.5, 98, false, 'NORMAL');
 
 void main() {
+  test('웹 근무 코드 복원과 중지 시간은 휴식 시간과 구분한다', () {
+    for (final entry in <String, WorkPhase>{
+      '8001': WorkPhase.ready,
+      '8002': WorkPhase.working,
+      '8003': WorkPhase.resting,
+      '8004': WorkPhase.working,
+      '8005': WorkPhase.ready,
+      '8006': WorkPhase.stopped,
+    }.entries) {
+      expect((WorkState()..restorePhase(entry.key)).phase, entry.value);
+    }
+    final start = DateTime(2026, 11, 26, 9);
+    final state = WorkState()..restorePhase('8006');
+    state.startedAt = start;
+    state.restStartedAt = start.add(const Duration(minutes: 30));
+    expect(state.resumeWork(now: start.add(const Duration(minutes: 45))), true);
+    expect(state.endWork(now: start.add(const Duration(hours: 1))), true);
+    expect(
+      state.workHistory.single.stoppedDuration,
+      const Duration(minutes: 15),
+    );
+    expect(state.workHistory.single.restDuration, Duration.zero);
+    expect(
+      state.workHistory.single.workingDuration,
+      const Duration(minutes: 45),
+    );
+  });
+
   test('근무 시작 → 휴식 → 재개 → 종료 이력을 기록한다', () {
     final state = WorkState();
     final start = DateTime(2026, 11, 23, 9);

@@ -40,8 +40,7 @@ class TopbarWidget extends StatelessWidget {
         : MobileApi.instance.displayName;
     // 구정민 : 수정 - 근무 전·종료 후에는 DB에 배정이 존재해도 일자리명을 표시하지 않는다.
     // 구정민 : 근무·휴식 중에는 서버가 WORK_LIST로 확인한 실제 진행 일자리만 표시한다.
-    final onShift =
-        workPhase == WorkPhase.working || workPhase == WorkPhase.resting;
+    final onShift = workPhase != WorkPhase.ready;
     final job = !onShift
         ? '근무 대기 중'
         : loading

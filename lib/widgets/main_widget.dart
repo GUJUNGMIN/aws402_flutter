@@ -57,7 +57,11 @@ class MainWidget extends StatelessWidget {
     required String value,
   }) {
     final grade = switch (latestGrade) {
-      'NORMAL' || 'NOTICE' || 'WARNING' || 'DANGER' => latestGrade!,
+      'NORMAL' ||
+      'NOTICE' ||
+      'WARNING' ||
+      'DANGER' ||
+      'EMERGENCY' => latestGrade!,
       _ => '현재 표시하지 않는 상태',
     };
 

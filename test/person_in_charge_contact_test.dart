@@ -80,7 +80,7 @@ void main() {
     expect(requests, 1);
   });
 
-  for (final type in ['notice', 'warning', 'danger']) {
+  for (final type in ['notice', 'warning', 'danger', 'emergency']) {
     testWidgets('등급에 맞는 연락 버튼을 배치한다: $type', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -95,15 +95,25 @@ void main() {
         ),
       );
       if (type == 'notice') {
-        expect(find.text('휴식 시작'), findsOneWidget);
+        expect(find.text('닫기'), findsOneWidget);
         expect(find.text('담당자 연결'), findsNothing);
         expect(find.text('119'), findsNothing);
         return;
       }
 
+      if (type == 'warning') {
+        expect(find.text('휴식하기'), findsOneWidget);
+        expect(find.text('담당자 연결'), findsNothing);
+        expect(find.text('119'), findsNothing);
+        return;
+      }
       final contact = find.widgetWithText(FilledButton, '담당자 연결');
       final emergency = find.widgetWithText(OutlinedButton, '119');
       expect(tester.widget<FilledButton>(contact).onPressed, isNotNull);
+      if (type == 'danger') {
+        expect(emergency, findsNothing);
+        return;
+      }
       expect(tester.widget<OutlinedButton>(emergency).onPressed, isNotNull);
       expect(
         tester.getTopLeft(contact).dy,

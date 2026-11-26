@@ -1,0 +1,228 @@
+2026-11-23 주석 보완본: HANDOFF_LOGIC.html(연계도), HANDOFF_WITH_LOGIC.txt, SOURCE_INDEX.txt를 함께 확인하세요.
+
+헬스가드 — 기존 ERD 유지 수정본 / 워치 연동 인수인계
+작성일: 2026-11-23
+추가 테이블을 요구하던 이전 watch_ready / watch_pair 배포본을 대체합니다.
+테이블·컬럼·기존 ERD SQL은 변경하지 않았습니다. 이전 추가 테이블 SQL은 사용하지 않습니다.
+수정본은 새 폴더에서 열고 개인 DB 설정을 복사하세요. 이전 build/classes를 재사용하지 마세요.
+IntelliJ에서 이전 SchemaCheck 클래스가 남으면 수정본에서 gradlew.bat clean을 실행한 뒤 다시 빌드하세요.
+
+완료 범위
+Flutter의 실제 측정 이벤트 수신 → GPS 조회 → HTTP → Spring Boot 인증 → MySQL 저장 →
+HEALTH_BASE 판정 → 실제 저장값 응답 → 앱 표시까지 소프트웨어 경로를 준비하고 검증했습니다.
+실제 워치 통신/SDK/센서 수집 모듈은 담당자가 연결해야 합니다.
+기본 WatchClient는 미설정 상태이며 연결 성공이나 측정값을 가상으로 만들지 않습니다.
+담당자 알림·전화·SOS·119 외부 연락 기능은 이 작업 범위에서 구현하지 않았습니다.
+
+1. 가장 먼저 적용할 순서
+(1) 이번 aws402_flutter와 health-guard-server를 함께 사용하세요. 이전 서버와 섞으면 계약이 다릅니다.
+(2) 기존 MySQL의 ERD를 그대로 사용합니다. 새 테이블/컬럼 생성 SQL은 없습니다.
+    db/erd_schema.sql 및 db/erd_migration.sql은 기존 파일 그대로이며 이번 수정에 실행할 필요가 없습니다.
+    db/mobile_watch_reference_codes.sql은 TYPE 코드가 빠져 있을 때만 필요한 선택적 데이터 INSERT입니다.
+    기존 코드·사용자·배정·HEALTH_BASE 기준은 유지합니다. WS/RS/RR/WE 및 N/W/D/E 코드와 실제 배정/기준을 확인하세요.
+    이전 db/*demo*seed.sql 및 resources/data.sql은 개발 이력이며 실제 DB 초기화에 사용하지 않습니다.
+(3) JDK 21 및 MySQL 접속 환경 변수를 설정하세요.
+    DB_URL: jdbc:mysql://서버주소:3306/testdb?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+    DB_USERNAME: 실제 DB 사용자
+    DB_PASSWORD: 실제 DB 비밀번호
+    비밀번호는 소스에 넣지 않습니다. application-local.properties는 공유하지 않습니다.
+    기존 개인 설정 대신 제공한 application-local.properties.example을 기준으로 설정하세요.
+(4) 서버 폴더에서 검증/실행:
+    .\gradlew.bat test bootJar
+    java -jar build/libs/health-guard-server-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod
+    기본 설정은 MySQL, ddl-auto=none, 샘플 자동 삽입 없음, H2 콘솔 비활성화입니다.
+    추가 테이블 확인/생성 없이 기존 스키마로 기동합니다.
+(5) Flutter 폴더에서 flutter pub get 후 실행:
+    flutter run --dart-define=MOBILE_API_BASE_URL=http://서버IP:8080
+    기본 URL은 에뮬레이터용 10.0.2.2입니다. 실제 휴대폰은 도달 가능한 서버 주소로 바꾸세요.
+(6) 아래 실제 워치 통신 브리지를 등록하고 실기기 검증을 진행하세요.
+
+2. 워치 담당자가 연결할 위치
+lib/watch/watch_client.dart: 연결 상태와 새 측정 Stream 계약.
+lib/watch/watch_bridge_client.dart: 실제 통신 콜백과 앱을 잇는 준비된 브리지.
+lib/models/health_measurement.dart: 측정 ID/실제 측정 시각/세 센서값 모델.
+lib/watch/watch_health_controller.dart: 유효성·중복·신선도 검사, 전송, 저장 확인, 화면 갱신.
+lib/main.dart: runApp 전에 WatchClient.instance를 실제 브리지로 교체할 위치.
+
+아래 transport는 팀원이 구현할 실제 SDK/통신 객체를 의미합니다.
+
+final bridge = WatchBridgeClient(
+  onConnect: transport.connect,
+  onDisconnect: transport.disconnect,
+  onRequestMeasurement: transport.requestMeasurement,
+);
+WatchClient.instance = bridge;
+
+실제 연결 이벤트를 받았을 때:
+bridge.reportConnection(WatchConnection.connecting);
+bridge.reportConnection(WatchConnection.connected);     // 실제 연결이 확인된 때만
+bridge.reportConnection(WatchConnection.disconnected);  // 실제 해제/연결 실패
+
+실제 센서 측정 묶음을 받았을 때:
+bridge.reportMeasurement(HealthMeasurement(
+  sampleId: incomingUniqueId,
+  measuredAt: incomingMeasuredAt,
+  bpm: incomingHeartRate,
+  temperature: incomingSkinTemperatureCelsius,
+  spo2: incomingOxygenSaturationPercent,
+));
+
+명령 Future가 끝났다는 이유만으로 연결 성공을 만들지 마세요.
+센서 권한·데이터 수집 가능 여부·지원 항목은 사용할 실제 워치와 SDK에서 먼저 확인하세요.
+SDK/플랫폼 채널/장치 탐색/워치 앱/필요 권한/네이티브 서비스 구현은 워치 담당 범위입니다.
+FakeWatchClient는 test/ 전용이며 lib/ 또는 실제 연결 코드에서 사용하지 않습니다.
+
+3. 주기/생명주기
+최초 측정은 사용자의 건강 측정 요청 뒤 실제 새 측정값이 도착해야 처리됩니다.
+근무·휴식 중에는 워치에서 받은 신규 측정값마다 전송합니다.
+Flutter가 가상값을 생성하거나 과거 값을 1분마다 반복 전송하는 타이머는 없습니다.
+워치 담당자가 실제 신규 샘플을 1분 간격 등 합의한 주기로 전달해야 합니다.
+연결 해제 시 disconnected 이벤트를 반드시 보고하세요.
+재연결 중에는 같은 브리지/측정 Stream을 유지하고 과거 버퍼를 재전달하지 마세요.
+측정 Stream 종료는 모듈 최종 해제용입니다. 관련 네이티브 구독도 종료 시 정리하세요.
+앱 화면이 종료되면 앱 수신 구독과 측정 대기 타이머를 해제합니다.
+백그라운드·화면 꺼짐·프로세스 종료에서의 주기 보장은 별도 워치/네이티브 구현과 실기기 검증이 필요합니다.
+
+4. 측정 데이터 계약
+sampleId: 1~128자, 영문·숫자·점·밑줄·콜론·하이픈만 사용.
+          사용자별 고유 ID이며 장치/세션 식별자를 포함해 재연결 후에도 재사용하지 마세요.
+measuredAt: 실제 측정 완료 시각. Flutter가 UTC ISO 8601 문자열로 전송합니다.
+            서버는 시간대가 포함된 ISO 시각을 요구합니다. 과거 값을 수신 시각으로 덮어쓰지 마세요.
+bpm: 정수, 단위 bpm.
+skinTemperature: 실수, 실제 피부온도 ℃. 환경온도나 다른 항목으로 대체하지 않습니다.
+spo2: 정수, 단위 %.
+fallDetected: 기본 false. 현재 낙상 기능은 비활성/숨김 상태입니다.
+steps: 수집·전송하지 않습니다. 기존 HEALTH.STEPS 컬럼은 호환성을 위해 0으로 저장합니다.
+latitude/longitude: 휴대폰에서 전송 직전 조회하며 둘 다 제공하거나 둘 다 생략합니다.
+사용자 ID는 요청에 넣지 않고 로그인 세션으로 서버가 결정합니다.
+
+세 센서값은 같은 측정 묶음이어야 합니다.
+누락/권한 거부/측정 실패를 0·정상값·과거값으로 채워서 전달하지 마세요.
+전송 형식 검사와 건강 등급 판정은 다릅니다. 정상/주의/경고/위험 기준은 HEALTH_BASE에서만 조회합니다.
+피부온도는 기존 DB의 소수 둘째 자리 정밀도로 저장·판정하며 앱도 저장된 수치로 갱신합니다.
+
+5. 저장 API와 응답
+POST /api/mobile/measurements
+Header: X-Mobile-Session: 로그인 응답 token
+Body: sampleId, measuredAt, bpm, skinTemperature, spo2, 선택 fallDetected/latitude/longitude
+앱은 steps/status/scenario를 보내지 않습니다.
+응답: saved, duplicate, source=WATCH, healthId, status, previousStatus, statusChanged,
+      alertId, receivedAt, measurement 객체.
+measurement의 bpm/skinTemperature/spo2는 실제 DB 저장값입니다.
+sampleId/measuredAt/당시 판정은 요청 검증용 메모리 정보입니다. metadataPersisted:false를 반환합니다.
+saved:true는 기존 HEALTH/GPS/ALERT의 저장 성공이며 모든 응답 필드의 영구 보관을 뜻하지 않습니다.
+Flutter는 saved:true와 유효한 판정, ID/시각 일치 및 저장값 객체를 확인한 후에만 화면을 갱신합니다.
+source=WATCH는 이 저장 경로의 출처 구분이며 장치 인증/하드웨어 검증 증명은 아닙니다.
+
+GET /api/mobile/measurements/latest
+로그인 사용자의 최신 HEALTH를 조회합니다. HEALTH가 없으면 404입니다.
+같은 서버의 최근 요청 정보가 남아 있으면 sampleId/실제 measuredAt/당시 status를 함께 반환합니다.
+재시작·만료·용량 초과로 없으면 metadataAvailable:false, metadataPersisted:false,
+sampleId/measuredAt/status:null, requiresNewMeasurement:true와 DB 저장 수치/receivedAt을 반환합니다.
+다른 사용자의 데이터는 조회하지 않습니다. Flutter는 POST 저장 확인 후에만 근무 전 측정을 완료 처리합니다.
+
+기존 /history/health는 HEALTH만 조회하며 기존 이력을 유지합니다.
+시간과 날짜 필터는 기존 HEALTH.INSERT_TIME, 즉 서버 수신 시각 기준입니다.
+호환 필드 measuredAt과 receivedAt은 모두 이 저장 시각이며 timestampKind=SERVER_RECEIVED로 명시합니다.
+이력의 sampleId는 null, source는 UNKNOWN입니다. DB에 없는 출처나 실제 측정 시각을 추정하지 않습니다.
+앱 건강 이력에도 시간이 서버 수신 기준임을 표시합니다.
+상태 변경 비정상 알림은 기존 ALERT_LIST에 서버 수신 시각으로 기록합니다.
+기존 컬럼을 JSON/메타데이터 저장소로 재사용하지 않습니다.
+
+6. 중복/시간/실패 처리
+동일 서버 프로세스의 최근 요청 메모리가 남아 있을 때에만 아래 중복/순서 검사가 가능합니다.
+보관 시간은 max-age + future-tolerance + 60초(기본 185초), 전체 최대 10,000건입니다.
+재시작·보관 만료·용량 초과·여러 서버 인스턴스 간에는 ID 기반 중복 방지를 보장하지 않습니다.
+자동 재전송/오프라인 큐 대신 다음 신규 측정을 보내고, 재연결마다 고유 ID를 사용하세요.
+영구 중복 방지·실제 측정 시각/당시 판정 영구 보관은 기존 ERD 조건에서 제공하지 않습니다.
+같은 사용자+sampleId와 같은 센서값·측정 시각의 최근 재요청은 기존 결과만 반환합니다.
+duplicate:true, statusChanged:false이며 HEALTH/GPS/알림을 다시 저장하지 않습니다.
+같은 ID로 다른 센서값·측정 시각을 보내면 409입니다.
+GPS는 재전송 시 달라질 수 있어 센서 동일성 해시에서 제외하며, 중복 때 GPS도 다시 저장하지 않습니다.
+서로 다른 사용자에게 동일한 장치 ID가 있어도 사용자별로 구분합니다.
+메모리에 이전 정보가 남아 있으면 새 샘플은 이전보다 측정 시각이 뒤여야 합니다.
+기본 허용 나이는 120초, 미래 시각 허용은 5초입니다. 폰·워치·서버 시계를 맞추세요.
+서버 설정: mobile.measurement.max-age-seconds / future-tolerance-seconds.
+Flutter: maxSampleAge 및 측정 요청 시간 비교도 적용하므로 서버 정책을 변경하면 함께 확인하세요.
+최초 측정 수신 대기 기본값은 90초입니다.
+전송 중 추가 수신값과 실패값은 앱에서 큐에 넣거나 재전송하지 않고 다음 신규 샘플을 기다립니다.
+저장 실패 시 새 값을 완료로 표시하지 않고, 이미 저장 확인된 이전 표시값은 유지합니다.
+연결 해제/근무 종료 뒤 늦게 돌아온 저장 응답은 초기화된 완료 상태를 되살리지 않습니다.
+
+400: 필수 필드/ID/시각 형식/센서 전송 범위/좌표 쌍 오류.
+401: 로그인 세션 없음·만료.
+409: 오래된·미래·역순 측정, ID 충돌, 근무 전환 조건 또는 DB 기준/배정 누락.
+404: 최신 워치 측정 없음 또는 기본 실행의 데모 API.
+DB 처리 도중 실패하면 건강값·GPS·알림을 롤백하고 최근 요청 메모리도 제거합니다.
+
+7. 근무 시작과 재측정
+서버도 최근의 정상 워치 측정이 있고 최신 HEALTH와 일치하는지 확인합니다.
+서버 재시작/메모리 만료 후 새 근무를 시작하려면 새 측정이 필요합니다.
+기존 진행 중 근무와 이력은 DB에서 조회하며 이 메모리가 없어졌다고 삭제되지 않습니다.
+기존 DATETIME의 초 단위 정밀도는 유지합니다. 메모리의 정밀 종료 시각이 없으면 DB 종료 시각 다음 초까지 보수적으로 제외합니다.
+이전 가상 기록만 있거나 마지막 근무 종료 전 측정이면 새 근무를 시작할 수 없습니다.
+HEALTH_BASE 변경이 있으면 근무 시작 시 현재 기준으로 다시 검증합니다.
+앱에서는 연결 확인과 서버 저장된 NORMAL 판정이 모두 필요합니다.
+주의/경고/위험은 저장 결과를 표시하지만 시작 조건을 만족시키지 않습니다.
+상단바의 실제 진행 일자리 및 근무·상태 이력 집계 흐름은 유지했습니다.
+
+8. 서버 설정과 개발 기능
+기본/운영 실행에서 /api/mobile/demo/measurements는 등록되지 않습니다.
+명시적 mobile-demo 프로필에서만 개발용 조회가 가능하고 prod와 함께 활성화하면 제외됩니다.
+실측 응답에서 demo:true를 제거했고 실제 이력 문구로 바꿨습니다.
+개발용 가상 샘플 생성기와 과거 seed 파일은 참고/개발용으로만 남아 있습니다.
+기존 웹 API와 공통 로그인 구조는 변경하지 않았습니다.
+모바일 로그인 세션은 서버 디스크에 보관합니다. 기존 계정 비밀번호 비교 정책은 팀 공통 범위입니다.
+기존 모바일 PK 발번을 유지하며 WS 분류 행 DB 잠금으로 모바일 동시 쓰기를 직렬화합니다.
+다른 웹 저장 경로가 HEALTH/ALERT_LIST를 동시에 쓴다면 공통 PK 정책은 서버 담당자와 함께 확인하세요.
+기존 데이터 시간대는 Asia/Seoul 기준으로 유지하며 시간대 설정 변경은 기존 데이터와 함께 검토하세요.
+
+9. 검증
+최종 검증 결과는 동봉한 HANDOFF_CHANGE_REPORT.txt를 확인하세요.
+기존 테스트 파일을 보존하고 ERD 유지·재시작 시 메타데이터 부재·롤백 테스트를 보완했습니다.
+수정 Dart/Java 코드 정렬 및 빌드/캐시/개인 DB 설정 제외 후 전달합니다.
+검증은 격리된 H2와 별도 작업용 MySQL 인스턴스에서만 수행합니다. 기존 DB에는 SQL을 실행하지 않습니다.
+
+10. 팀원이 마무리할 항목
+[ ] 실제 워치 통신/센서 권한/세 센서 지원 및 단위 확인 후 WatchBridgeClient 등록.
+[ ] 실제 기기에서 최초 측정과 1분 등 합의 주기 수신 확인.
+[ ] GPS 승인/거부, 네트워크 끊김, 재연결, 앱 재시작, 화면 꺼짐/백그라운드 확인.
+[ ] 기존 ERD와 TYPE 분류 코드·사용자·배정·HEALTH_BASE 기준 확인. 신규 테이블 SQL 없음.
+[ ] 실기기–서버–MySQL 저장/판정/화면/이력 최종 검증.
+워치 SDK나 실제 센서 입력 자체는 이 작업에서 구현·검증하지 않았으므로 장치 연결만으로 완료됐다고 가정하지 마세요.
+
+11. 소프트웨어 연동 검증 재실행 (선택)
+서버의 src/test/.../MobileWatchContractServer와 WatchTestFixtures는 H2 메모리 DB에서만 실행됩니다.
+서버 폴더의 첫 터미널에서 실행:
+.\gradlew.bat -I tools/watch-contract.init.gradle watchContractServer
+build/watch-contract-port.txt에서 임시 포트를 확인하세요. Ctrl+C로 서버를 종료할 수 있습니다.
+Flutter에서 명시적으로 실행:
+flutter test test/contracts/real_server_contract.dart --dart-define=WATCH_CONTRACT_BASE_URL=http://127.0.0.1:포트
+이 파일은 실서버 주소가 필요하므로 일반 *_test.dart 자동 회귀 검사와 분리했습니다.
+워치 이벤트/GPS만 테스트 대역이며 앱 API와 서버/DB 처리는 실제 코드입니다.
+실제 팀 운영 서버에 테스트 계정/측정값을 보내지 말고 분리된 검증 환경에서 사용하세요.
+
+테스트 파일명 정리 (v2)
+- Flutter test/는 자동 검증용 표준 폴더이며 유지합니다.
+- mobile_demo_measurement_test.dart → watch_measurement_api_test.dart
+- widget_test.dart → app_startup_test.dart
+- 기존 검증 내용은 보존하고 파일명만 현재 역할에 맞췄습니다.
+- fake_watch_client.dart / mobile_api_stub.dart는 테스트 전용 모의 장치/응답 도우미입니다.
+- 실제 앱의 워치 연결 구현은 lib/watch/에 있으며 테스트 도우미와 구분합니다.
+- 일반 자동 검증 파일의 _test.dart 접미사는 유지합니다.
+- contracts/real_server_contract.dart는 별도 서버 주소를 지정해 명시 실행하는 연동 검사입니다.
+
+서버 재시작과 앱 로그인
+세션 유효기간은 발급 후 12시간입니다. 서버는 실행 폴더의 .mobile-sessions에
+토큰 해시와 사용자 번호·표시 이름·만료 시각을 보관합니다.
+실행 위치가 바뀌거나 컨테이너를 교체하는 배포에서는 mobile.session.directory를
+같은 영속 디렉터리의 절대 경로로 설정하고 서버 계정만 읽고 쓸 수 있게 하세요.
+서버가 여러 대인 배포에서는 각 로컬 폴더가 서로 다른 세션 저장소가 됩니다.
+기존 메모리 방식에서 업데이트하는 시점에는 한 번 재로그인이 필요합니다.
+앱 로그아웃
+홈 상단의 프로필을 누르고 로그아웃을 확인합니다.
+앱은 POST /api/mobile/auth/logout으로 현재 세션의 폐기를 요청합니다.
+서버 확인 후 휴대폰의 토큰을 지우고 로그인 화면으로 돌아갑니다.
+서버에 연결할 수 없으면 오류를 표시하고 로그아웃을 다시 시도할 수 있습니다.
+로그아웃은 인증 세션 종료이며 근무 종료 버튼의 WORK_LIST 이벤트와 별개입니다.
+Flutter 확인 명령: flutter test test/mobile_logout_test.dart

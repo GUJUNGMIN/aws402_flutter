@@ -93,6 +93,7 @@ class _HealthHistoryScreenState extends State<HealthHistoryScreen> {
     'NOTICE' => '주의',
     'WARNING' => '경고',
     'DANGER' => '위험',
+    'EMERGENCY' => '응급',
     _ => '상태',
   };
 
@@ -101,6 +102,7 @@ class _HealthHistoryScreenState extends State<HealthHistoryScreen> {
     'NOTICE' => const Color(0xFFAD7B00),
     'WARNING' => const Color(0xFFC45718),
     'DANGER' => const Color(0xFFC92835),
+    'EMERGENCY' => const Color(0xFF8B1228),
     _ => Colors.grey,
   };
 
@@ -115,6 +117,7 @@ class _HealthHistoryScreenState extends State<HealthHistoryScreen> {
           notice: day.noticeCount,
           warning: day.warningCount,
           danger: day.dangerCount,
+          emergency: day.emergencyCount,
         ),
       ),
     ];
@@ -175,6 +178,7 @@ class _HealthHistoryScreenState extends State<HealthHistoryScreen> {
             notice: day.noticeCount,
             warning: day.warningCount,
             danger: day.dangerCount,
+            emergency: day.emergencyCount,
           ),
           const Divider(height: 22),
           for (final event in day.events)
@@ -372,7 +376,7 @@ class _HealthHistoryScreenState extends State<HealthHistoryScreen> {
             child: Row(
               children: [
                 Text(
-                  '일자별 주의 · 경고 · 위험 발생 횟수',
+                  '일자별 주의 · 경고 · 위험 · 응급 발생 횟수',
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                 ),
               ],

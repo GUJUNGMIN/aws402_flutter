@@ -5,16 +5,17 @@
 class Step2FeatureFlags {
   const Step2FeatureFlags._();
 
-  // 구정민 : 실제 연동 시 기능별 검증을 거쳐 다시 켤 수 있다.
-  static const bool showEmergency = false;
+  // 응급 기준 판정 화면은 사용하고 낙상 센서 입력은 기존 정책을 유지한다.
+  static const bool showEmergency = true;
   static const bool showFall = false;
 
-  // 구정민 : DB 알림 E 코드와 서버의 EMERGENCY 판정을 함께 인식한다.
-  /// [인수인계] 서버 등급이 현재 숨김 대상인 응급 상태인지 확인한다.
+  // 새 DB 코드 7005와 기존 E/EMERGENCY 이력을 함께 인식한다.
+  /// [인수인계] 서버 등급이 응급 상태인지 확인한다.
   static bool isEmergencyStatus(String? value) {
     final status = value?.trim().toUpperCase();
     return status == 'EMERGENCY' ||
         status == 'E' ||
+        status == '7005' ||
         status == '응급' ||
         status == '위급';
   }

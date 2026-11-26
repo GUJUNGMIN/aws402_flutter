@@ -1,0 +1,104 @@
+2026-11-23 인수인계·로직 연계도·소스 주석 보완
+대상: 기존 ERD 유지 v2의 Flutter / Spring Boot. 실행 로직 변경 없음.
+
+- 직접 작성된 Dart 29개 + Java 52개 = 81개 소스에 파일 역할을 추가.
+- 함수/생성/변환/상태 조건 340곳에 인수인계 설명 주석 추가.
+- 주요 경로에 저장 확인·비동기 응답 무효화·DB/메모리 구분을 설명.
+- 자동 생성 l10n Dart 2개는 재생성 대상이므로 주석 보완 제외.
+- HANDOFF_LOGIC.html: 오프라인 전체 측정 흐름도 / 근무 상태도 / 기능별 API·테이블 매핑.
+- HANDOFF_WITH_LOGIC.txt: 구현 범위, 실제 워치 연결, 실행/오류 대응, 실기기 인수 체크.
+- SOURCE_INDEX.txt: 81개 파일의 역할과 설명 함수 줄 번호.
+- 기존 WATCH_HANDOFF API 계약 및 이전 수정 보고서 유지.
+- 기존 모든 테스트 파일과 실제 테스트 내용 보존. 일부 테스트의 정렬만 적용.
+- 기존 ERD SQL과 설정은 공유용 v2 그대로이며 추가 테이블/컬럼 없음.
+- 실제 SDK 연결/실기기 센서 수집과 백그라운드 주기 보장은 팀원 작업 범위로 명시.
+
+검증
+Flutter 66개 테스트 통과.
+서버 28개 테스트 통과, bootJar 성공.
+Dart format / google-java-format 적용.
+원본에도 동일 정렬을 적용하고 주석을 제외한 코드 비교: 81개 소스 실행 코드 동일.
+테스트 내용도 동일 비교로 유지 확인.
+Flutter analyze error/warning 0. info 3개:
+  기존 loading_dialog의 불필요 import 및 withOpacity 사용 2개,
+  기존 work_history_screen의 중괄호 없는 if가 정렬 후 드러난 스타일 안내 1개.
+이번에는 동작 범위를 늘리지 않고 주석/문서/정렬만 보완했습니다.
+이번 회차에는 실제 워치와 팀 사용 DB에 접속하거나 SQL을 실행하지 않았습니다.
+기존 v2 실서버/MySQL 연동 검증 이력은 기존 보고서를 참고하세요.
+
+패키지
+공유용: 개인 local DB 계정 제외.
+개인 설정 포함본: 이전에 정상 접속한 application-local.properties를 원본 그대로 복사.
+프로필 미지정 시 local 기본 적용. 개인 설정에는 DB 비밀번호가 있으므로 공유용과 구분.
+build/.gradle/.dart_tool/.idea/개인 IDE 설정은 제외하고 Gradle wrapper는 유지합니다.
+Flutter 최상위 aws402_flutter, 서버 최상위 health-guard-server 유지.
+
+
+이전 기능 수정 보고서
+----------------
+헬스가드 — 기존 ERD 유지 수정 보고서
+작성일 2026-11-23
+이번 existing_erd 배포본이 이전 watch_ready / watch_pair 배포본을 대체합니다.
+
+첨부 실행 로그 분석
+- MySQL 8.0.46 연결 및 JPA 초기화, Tomcat 포트 준비까지 성공했습니다.
+- MobileMeasurementSchemaCheck.run()이 기존 DB에 없는 mobile_measurement_receipt를 조회했습니다.
+- MySQL 오류 1146 / SQLState 42S02 뒤 IllegalStateException으로 실행이 실패하고 서버가 종료됐습니다.
+- 중간의 Started 문구와 맨 아래 종료 코드 0만으로 기동 성공으로 판단할 수 없습니다.
+- MySQLDialect 명시 경고 및 No JTA platform available 문구는 이 종료의 직접 원인이 아닙니다.
+- 해결은 추가 테이블 생성이 아니라, 기존 ERD 조건에 맞춰 추가 테이블 의존성을 제거하는 것입니다.
+- 기존 Downloads 프로젝트와 실제 사용 DB에는 이번 작업에서 SQL/수정을 적용하지 않았습니다.
+
+변경 내용
+1. MobileMeasurementSchemaCheck, 추가 JPA Entity, 추가 테이블 마이그레이션 SQL 제거.
+2. 기존 HEALTH/GPS_LIST/ALERT_LIST/WORK_LIST만 사용합니다. 테이블·컬럼 추가 없음.
+3. 원본 db/erd_schema.sql과 db/erd_migration.sql은 SHA256 비교 결과 동일합니다.
+4. 측정 ID/실제 측정 시각/당시 판정은 plain Java 객체와 제한된 메모리 캐시에서만 사용합니다.
+   기본 185초, 최대 10,000건. 재시작·만료·용량 초과·여러 서버 간 영구 중복 보장은 없습니다.
+   DB 저장 실패/롤백 시 캐시도 제거합니다. 모바일 DB 쓰기는 기존 TYPE.WS 행으로 직렬화합니다.
+5. 실제 DB 반올림 저장 수치를 읽어 POST 응답하고 Flutter는 저장 확인 뒤에만 갱신합니다.
+6. latest는 최근 메타데이터가 없으면 null 및 metadataAvailable:false를 반환합니다.
+   saved:true는 기존 테이블의 수치 저장 확인이며 모든 응답 필드의 영구 저장을 뜻하지 않습니다.
+7. 기존 이력/날짜 필터는 서버 수신 시각을 사용합니다.
+   health history의 호환 measuredAt 필드는 INSERT_TIME이며 timestampKind=SERVER_RECEIVED입니다.
+   실제 측정 ID/실제 측정 시각/당시 판정을 DB에 보관한다고 안내하지 않습니다.
+8. 근무 시작은 최신 HEALTH와 일치하는 최근 정상 측정이 필요합니다.
+   서버 재시작/캐시 만료 뒤 새 근무 시작에는 새 측정이 필요합니다. 기존 진행 근무/이력은 유지됩니다.
+9. 기존 DATETIME 초 단위 정밀도는 유지합니다. 같은 서버에서 정밀 종료 시각을 기억해 재사용을 막고,
+   재시작 후에는 DB 종료 시각 다음 초까지 보수적으로 재시작을 차단합니다.
+10. 기존 UI 카드 정렬, 상단바, 근무/상태 이력, 앱 시작 GPS 권한 요청 흐름은 유지합니다.
+   이력 시간 설명만 서버 수신 기준으로 명확히 했습니다.
+11. 실제 워치 SDK 연결은 팀원 범위입니다. 기본 구현은 가상 연결·가상값을 만들지 않습니다.
+    근무/휴식 중 새 이벤트마다 전송하며 과거 수치를 반복하는 타이머는 없습니다.
+    steps는 전송하지 않으며 기존 STEPS 컬럼은 호환값 0을 사용합니다.
+
+검증
+- Flutter 전체 66개 테스트 통과, 기존 테스트 파일 보존.
+- 서버 전체 28개 테스트 통과, bootJar 성공.
+- 새 테이블이 없는 스키마, 재시작 시 메타데이터 없음, 재측정 요구, 동시 중복, DB 롤백과 캐시 롤백 검증.
+- Flutter analyze error/warning 0, 기존 loading_dialog.dart의 info 2개 유지.
+- 수정 Dart dart format, 모바일 Java/테스트 google-java-format 적용.
+- 원본 ERD SQL로만 생성한 별도 MySQL 8.0.46에서 prod JAR 기동 성공.
+- 실제 Flutter/Dio → Spring Boot prod JAR → MySQL 연동 검사 1개 통과.
+  측정 저장값 반영/중복/근무/휴식/재개/종료/종료 후 이전 측정 재사용 차단/수신 시각 이력 검증.
+- 기존 테이블 16개, 추가 receipt 테이블 0개. 건강 2건 / 근무 이벤트 4건 확인.
+- MySQL 초 단위 시각으로 종료 전 샘플이 재사용되는 경계 오류를 발견해 수정하고 회귀 검증.
+
+전달/실행
+- build/.gradle/.dart_tool/.idea/개인 application-local.properties/local.properties는 제외합니다.
+- gradle 폴더의 wrapper JAR과 gradlew는 재빌드에 필요하므로 포함합니다.
+- 새 폴더에서 열고 DB_URL/DB_USERNAME/DB_PASSWORD 또는 개인 local 설정을 준비하세요.
+- 이전 폴더를 덮어써 남은 클래스가 있다면 gradlew.bat clean 후 빌드하세요.
+- 기존 실제 DB에 새 테이블 생성 SQL을 적용할 필요가 없습니다.
+- TYPE 코드가 실제로 빠져 있을 때만 data-only reference_codes SQL을 확인하세요.
+- 실제 워치 연결/권한/센서 지원/백그라운드 수신은 실기기에서 마무리 검증해야 합니다.
+
+테스트 파일명 정리 (v2)
+- Flutter test/는 자동 검증용 표준 폴더이며 유지합니다.
+- mobile_demo_measurement_test.dart → watch_measurement_api_test.dart
+- widget_test.dart → app_startup_test.dart
+- 기존 검증 내용은 보존하고 파일명만 현재 역할에 맞췄습니다.
+- fake_watch_client.dart / mobile_api_stub.dart는 테스트 전용 모의 장치/응답 도우미입니다.
+- 실제 앱의 워치 연결 구현은 lib/watch/에 있으며 테스트 도우미와 구분합니다.
+- 일반 자동 검증 파일의 _test.dart 접미사는 유지합니다.
+- contracts/real_server_contract.dart는 별도 서버 주소를 지정해 명시 실행하는 연동 검사입니다.

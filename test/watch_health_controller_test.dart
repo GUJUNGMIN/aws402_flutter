@@ -67,6 +67,19 @@ void main() {
     expect(posted, isEmpty);
   });
 
+  test('7001과 7005 저장 응답을 정상과 응급으로 해석한다', () async {
+    response = {'saved': true, 'statusCode': '7001'};
+    await controller.connect();
+    await controller.requestMeasurement();
+    await until(() => !controller.sending);
+    expect(controller.state.canStartWork, true);
+    response = {'saved': true, 'statusCode': '7005', 'statusChanged': true};
+    await controller.requestMeasurement();
+    await until(() => !controller.sending);
+    expect(controller.state.latestGrade, 'EMERGENCY');
+    expect(controller.state.canStartWork, false);
+  });
+
   test('워치 실측 세 값만 저장 후 화면과 시작 조건에 반영한다', () async {
     await controller.connect();
     expect(controller.state.canStartWork, false);

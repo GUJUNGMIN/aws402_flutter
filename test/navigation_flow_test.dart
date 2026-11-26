@@ -36,6 +36,20 @@ void main() {
     expect(find.byType(WorkWidget), findsOneWidget);
   }
 
+  testWidgets('경고 화면의 휴식하기는 휴식 저장 후 휴식 화면으로 이동한다', (tester) async {
+    await openWorkScreen(tester);
+    fakeWatch.emit(fakeWatch.sample(bpm: 119));
+    await settleMobileApi(tester);
+    await tester.ensureVisible(find.text('휴식하기'));
+    await settleMobileApi(tester);
+    expect(find.byType(AlertScreen), findsOneWidget);
+    await tester.ensureVisible(find.text('휴식하기'));
+    await tester.tap(find.text('휴식하기'));
+    await settleMobileApi(tester);
+    expect(find.byType(RestScreen), findsOneWidget);
+    expect(find.text('휴식 중'), findsWidgets);
+  });
+
   testWidgets('휴식 화면을 뒤로 닫으면 홈에 휴식 중으로 남고 근무 재개가 가능하다', (tester) async {
     // 구정민 : 휴식 시작 후 단순 뒤로가기로는 근무가 자동 재개되지 않는지 확인한다.
     await openWorkScreen(tester);

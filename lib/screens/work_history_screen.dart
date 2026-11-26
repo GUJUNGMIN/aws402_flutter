@@ -186,6 +186,11 @@ class _WorkHistoryScreenState extends State<WorkHistoryScreen> {
                   '휴식 ${_elapsed(item.restMinutes)}',
                   style: const TextStyle(fontSize: 12),
                 ),
+                if ((item.stoppedMinutes ?? 0) > 0)
+                  Text(
+                    '작업 중지 ${_elapsed(item.stoppedMinutes)}',
+                    style: const TextStyle(fontSize: 12),
+                  ),
                 Text(
                   '실근무 ${_elapsed(item.workingMinutes)}',
                   style: const TextStyle(
@@ -205,6 +210,7 @@ class _WorkHistoryScreenState extends State<WorkHistoryScreen> {
               notice: item.noticeCount,
               warning: item.warningCount,
               danger: item.dangerCount,
+              emergency: item.emergencyCount,
             ),
           ],
         ),
