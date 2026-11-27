@@ -2,9 +2,9 @@
 // 기능 연결 위치: 프로젝트의 HANDOFF_LOGIC.html / SOURCE_INDEX.txt
 
 import 'package:aws402_flutter/router/app_routes.dart';
-import 'package:aws402_flutter/service/watch_connection_service.dart';
 import 'package:aws402_flutter/watch/watch_bridge_client.dart';
 import 'package:aws402_flutter/watch/watch_client.dart';
+import 'package:aws402_flutter/watch/watch_link.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -32,28 +32,27 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  _watchService.startMonitoring(interval: const Duration(seconds: 5));  //5초 간격으로 워치의 연결 여부를 판단
-  String startRoute = await authenticationUser();
 
-
-  // await Future.delayed(const Duration(seconds: 3)); //임의로 3초 딜레이, 실 사용시에는 삭제
   // 구정민 : 수정 - 워치 담당자는 runApp 전에 WatchClient.instance에 실제 WatchBridgeClient를 등록한다.
+  // 워치 통신(WatchLink)이 보고할 대상이므로 통신을 시작하기 전에 등록한다.
+  late final WatchLink link;
   final bridge = WatchBridgeClient(
-    onConnect: connect,
-    onDisconnect: disconnect,
-    onRequestMeasurement: requestMeasurement,
+    onConnect: () => link.connect(),
+    onDisconnect: () => link.disconnect(),
+    onRequestMeasurement: () => link.requestMeasurement(),
   );
   WatchClient.instance = bridge;
+  // 워치 app-scenario와 Data Layer로 통신한다 (shared/protocol/PROTOCOL.md).
+  // 연결은 seniorsafe_watch 노드 이벤트로 바뀌며 주기적으로 묻지 않는다.
+  link = WatchLink(bridge);
+  WatchLink.instance = link;
+  link.start();
+
+  String startRoute = await authenticationUser();
 
   // 구정민 : 수정 - 기본 연결 모듈은 미설정 상태이며 가상 연결·측정값을 생성하지 않는다.
   runApp(MyApp(initialRoute: startRoute));
 }
-
-Future<void> connect()async {}
-Future<void> disconnect()async {}
-Future<void> requestMeasurement()async {}
-
-final WatchConnectionService _watchService = WatchConnectionService();
 
 String initRoute = AppRoutes.home;
 

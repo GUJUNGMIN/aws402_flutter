@@ -22,7 +22,7 @@ dependencies:
   firebase_messaging: ^17.1.0
   flutter_local_notifications: ^22.3.3
   firebase_app_installations: ^0.5.2
-  watch_connectivity: ^0.2.11 #워치연결 관련
+  # 워치 연결은 watch_connectivity 대신 네이티브 WearLinkChannel(seniorsafe_watch capability)로 확인한다.
 
 dev_dependencies:
   flutter_test:

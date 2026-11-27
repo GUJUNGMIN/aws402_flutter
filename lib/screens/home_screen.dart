@@ -18,6 +18,7 @@ import '../mobile/home_dashboard.dart';
 import '../models/work_state.dart';
 import '../models/health_measurement.dart';
 import '../watch/watch_health_controller.dart';
+import '../watch/watch_link.dart';
 
 class HomeScreen extends StatefulWidget {
   /// [인수인계] 생성에 필요한 의존성/초기값을 받아 이 객체를 구성한다.
@@ -38,6 +39,28 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _dashboardFailed = false;
   // 구정민 : 수정 - 오래된 홈 API 응답이 근무 전환 후의 정보를 덮어쓰지 않게 한다.
   int _dashboardFetchVersion = 0;
+  StreamSubscription<WatchNotice>? _watchNotices;
+
+  /// 워치 소식. 급한 것(경고 이상 판정·SOS·도움 요청)은 바로 띄우고, 나머지는 근무 화면 상태 문구로 보인다.
+  void _onWatchNotice(WatchNotice notice) {
+    if (!mounted) return;
+    if (notice.urgent) {
+      _message(notice.text);
+    } else {
+      setState(() => _work.serverMessage = notice.text);
+    }
+  }
+
+  /// 워치 근무 세션 명령의 결과를 알린다. 워치가 없으면(테스트·미등록) 아무것도 하지 않는다.
+  Future<void> _watchSession(
+      Future<WatchCommandResult> Function(WatchLink) command,
+      String label,
+      ) async {
+    final link = WatchLink.instance;
+    if (link == null) return;
+    final result = await command(link);
+    if (!result.ok) _message('$label: ${result.problem}');
+  }
 
   @override
   /// [인수인계] 화면 최초 생성 시 필요한 구독·조회·타이머를 초기화한다. dispose와 함께 확인한다.
@@ -58,6 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
     _health.addListener(_healthChanged);
+    _watchNotices = WatchLink.instance?.notices.listen(_onWatchNotice);
     _restoreWorkStatus();
     _loadHomeDashboard();
     _initFcm();
@@ -66,6 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   /// [인수인계] 화면/객체가 사라질 때 등록한 구독·리스너·타이머를 정리한다.
   void dispose() {
+    unawaited(_watchNotices?.cancel());
     _health.removeListener(_healthChanged);
     _health.dispose();
     super.dispose();
@@ -196,6 +221,8 @@ class _HomeScreenState extends State<HomeScreen> {
       await _loadHomeDashboard();
       if (!mounted) return;
       _message('근무 시작이 서버 DB에 기록되었습니다.');
+      // 워치 근무 세션을 시작해 1분 요약을 받는다. 실패해도 서버 기록은 되돌리지 않고 이유를 알린다.
+      unawaited(_watchSession((l) => l.startSession(), '워치 근무 시작'));
     } catch (error) {
       _showError(error);
     } finally {
@@ -227,6 +254,18 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted || confirmed != true || _changingWork || _signingOut) return;
     _changingWork = true;
     try {
+      // 워치에 먼저 종료를 요청한다. 워치가 거부하면(경고 이상, FR-W-01) 서버에도 기록하지 않는다.
+      // 워치에 닿지 않으면 서버 종료는 진행하고 그 사실을 알린다.
+      final link = WatchLink.instance;
+      if (link != null && link.connected) {
+        final watch = await link.endSession();
+        if (!mounted) return;
+        if (watch.blocked) {
+          _message('근무 종료: ${watch.problem}');
+          return;
+        }
+        if (!watch.ok) _message('워치 근무 종료: ${watch.problem}');
+      }
       await MobileApi.instance.workEvent('END');
       if (!mounted) return;
       setState(() {
@@ -261,6 +300,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _work.resumeWork();
           });
         }
+        unawaited(_watchSession((l) => l.endBreak(), '워치 휴식 끝'));
         return;
       }
       if (!_work.isWorking) return;
@@ -281,6 +321,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _work.resumeWork();
         });
       }
+      unawaited(_watchSession((l) => l.endBreak(), '워치 휴식 끝'));
     } catch (error) {
       _showError(error);
     } finally {

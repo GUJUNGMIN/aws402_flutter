@@ -55,10 +55,5 @@ public final class GeneratedPluginRegistrant {
     } catch (Exception e) {
       Log.e(TAG, "Error registering plugin shared_preferences_android, io.flutter.plugins.sharedpreferences.SharedPreferencesPlugin", e);
     }
-    try {
-      flutterEngine.getPlugins().add(new dev.rexios.watch_connectivity.WatchConnectivityPlugin());
-    } catch (Exception e) {
-      Log.e(TAG, "Error registering plugin watch_connectivity, dev.rexios.watch_connectivity.WatchConnectivityPlugin", e);
-    }
   }
 }
